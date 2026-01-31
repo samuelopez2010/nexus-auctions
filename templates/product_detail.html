@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% load custom_filters %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Gallery Section -->
+        <div class="lg:col-span-7 space-y-4">
+            <div class="bg-surface-dark border border-border-dark rounded-2xl p-2 relative group overflow-hidden">
+                <button
+                    class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-danger text-white hover:text-white transition-colors flex items-center justify-center backdrop-blur">
+                    <span class="material-symbols-outlined">favorite</span>
+                </button>
+                {% if product.images.first %}
+                <div class="h-[600px] flex items-center justify-center bg-black/20 rounded-xl overflow-hidden">
+                    <img src="{{ product.images.first.image.url }}"
+                        class="max-w-full max-h-full object-contain hover:scale-105 transition-transform duration-700">
+                </div>
+                {% else %}
+                <div class="h-[500px] flex items-center justify-center bg-surface-lighter rounded-xl">
+                    <span class="material-symbols-outlined text-6xl text-gray-600">image_not_supported</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Thumbnails -->
+            <div class="flex gap-4 overflow-x-auto pb-2">
+                {% for img in product.images.all %}
+                <div
+                    class="w-24 h-24 flex-shrink-0 bg-surface-dark border border-border-dark rounded-xl p-2 cursor-pointer hover:border-primary transition-colors">
+                    <img src="{{ img.image.url }}" class="w-full h-full object-cover rounded-lg">
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Specs & Info -->
+            <div class="bg-surface-dark border border-border-dark rounded-2xl p-8 mt-8">
+                <div class="border-b border-border-dark pb-4 mb-6">
+                    <h3 class="font-display font-bold text-xl text-white">Item Specifications</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-y-6 gap-x-12 text-sm">
+                    <div>
+                        <p class="text-gray-500 uppercase font-bold text-xs mb-1">Condition</p>
+                        <p class="text-white font-medium">{{ product.get_condition_display }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 uppercase font-bold text-xs mb-1">Location</p>
+                        <p class="text-white font-medium">{{ product.location }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 uppercase font-bold text-xs mb-1">Authenticity</p>
+                        <div class="flex items-center gap-2 text-success">
+                            <span class="material-symbols-outlined text-lg">verified</span>
+                            <span class="font-bold">Verified Authentic</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 uppercase font-bold text-xs mb-1">Category</p>
+                        <p class="text-white font-medium hover:text-primary cursor-pointer transition-colors">
+                            {{ product.category.name }}</p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-gray-500 uppercase font-bold text-xs mb-2">Description</p>
+                        <p class="text-gray-300 leading-relaxed">{{ product.description|linebreaksbr }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Panel -->
+        <div class="lg:col-span-5 space-y-6">
+            <div
+                class="bg-surface-dark border border-border-dark rounded-2xl p-8 sticky top-24 shadow-2xl shadow-black/50">
+                <!-- Header -->
+                <div class="flex items-center gap-2 mb-4">
+                    <span
+                        class="px-2 py-1 rounded bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-bold uppercase tracking-wider">
+                        LOT #{{ product.id }}
+                    </span>
+                    <span
+                        class="px-2 py-1 rounded bg-surface-lighter text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                        {{ product.category.name }}
+                    </span>
+                </div>
+                <h1 class="text-3xl font-display font-bold text-white leading-tight mb-6">{{ product.title }}</h1>
+
+                <!-- Seller Info -->
+                <div
+                    class="flex items-center justify-between p-4 bg-surface-lighter border border-border-dark rounded-xl mb-8">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center font-bold text-white border border-gray-600">
+                            {{ product.seller.username.0|upper }}
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-400 uppercase font-bold">Seller</p>
+                            <a href="{% url 'user_profile' product.seller.id %}"
+                                class="text-white font-bold hover:text-primary transition-colors flex items-center gap-1">
+                                {{ product.seller.username }} <span
+                                    class="material-symbols-outlined text-nexus-blue text-[14px]">verified</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-gray-400">Rating</p>
+                        <div class="flex items-center justify-end gap-1 text-yellow-500">
+                            <span class="material-symbols-outlined text-[16px]">star</span>
+                            <span class="text-sm font-bold text-white">{{ seller_rating }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if product.seller == user %}
+                <div class="mb-6 p-4 bg-nexus-blue/10 border border-nexus-blue/30 rounded-xl flex items-center gap-3">
+                    <span class="material-symbols-outlined text-nexus-blue">info</span>
+                    <p class="text-sm text-nexus-blue">You are listing this item. Bidding is disabled for you.</p>
+                </div>
+                {% endif %}
+
+                <!-- Auction Logic -->
+                {% if product.sales_type != 'DIRECT' %}
+                <div class="space-y-6 mb-8 p-4 bg-surface-dark rounded-xl border border-border-dark">
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <p class="text-gray-400 text-xs font-mono uppercase tracking-widest mb-1">Current Bid</p>
+                            <p class="text-4xl font-mono font-bold text-white">${{ product.current_highest_bid|default:product.initial_price|floatformat:2|intcomma }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-gray-400 text-xs font-mono uppercase tracking-widest mb-1">Time Left</p>
+                            {% if product.auction_end_time|is_expired %}
+                                <span class="text-xl font-bold text-red-500">ENDED</span>
+                            {% else %}
+                                <span class="text-xl font-mono font-bold text-primary auction-timer" data-end-time="{{ product.auction_end_time|date:'c' }}">
+                                    {{ product.auction_end_time|timeuntil }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if user.is_authenticated and product.seller != user and not product.auction_end_time|is_expired %}
+                        <form method="POST" class="relative group">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="bid">
+                            <div class="flex gap-2">
+                                <div class="relative flex-grow">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                                    <input type="number" name="amount" step="0.01" required placeholder="Enter bid..."
+                                        class="w-full bg-black border border-border-dark text-white rounded-xl py-3 pl-8 pr-4 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+                                </div>
+                                <button type="submit" class="bg-primary hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-orange-900/40 whitespace-nowrap">
+                                    PLACE BID
+                                </button>
+                            </div>
+                        </form>
+                    {% elif not user.is_authenticated %}
+                        <a href="{% url 'login' %}" class="block w-full py-3 bg-surface-lighter hover:bg-white hover:text-black text-white font-bold text-center rounded-xl transition-all border border-border-dark">
+                            Log in to Bid
+                        </a>
+                    {% endif %}
+
+                    <div class="flex justify-between text-xs text-gray-500 border-t border-border-dark pt-4">
+                        <span>{{ product.bids.count }} Bids total</span>
+                        <span>Min incr: $5.00</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                    <!-- Buy Now Action -->
+                    {% if product.buy_now_price or product.is_variable_price %}
+                    <div class="bg-surface-dark border border-border-dark p-6 rounded-xl relative overflow-hidden group hover:border-primary transition-colors">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="material-symbols-outlined text-6xl text-primary">shopping_bag</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-end mb-4">
+                            <span class="text-gray-400 font-bold text-xs uppercase tracking-widest">Buy It Now</span>
+                            {% if product.is_variable_price %}
+                                <span class="text-3xl font-mono font-bold text-white">Variable</span>
+                            {% else %}
+                                <span class="text-2xl font-mono font-bold text-white">${{ product.buy_now_price|default:product.initial_price|floatformat:2|intcomma }}</span>
+                            {% endif %}
+                        </div>
+
+                        {% if product.is_variable_price %}
+                            <!-- Variable Amount Selector -->
+                            <div class="mb-4 animate-fade-in-up">
+                                <label class="block text-gray-500 text-[10px] font-bold uppercase mb-2">Select Amount</label>
+                                <div class="grid grid-cols-3 gap-2 mb-3">
+                                    <button type="button" onclick="setAmount(100)" class="price-pill py-2 rounded border border-border-dark hover:bg-primary/20 hover:border-primary hover:text-white text-gray-400 transition-all font-mono text-xs">$100</button>
+                                    <button type="button" onclick="setAmount(200)" class="price-pill py-2 rounded border border-border-dark hover:bg-primary/20 hover:border-primary hover:text-white text-gray-400 transition-all font-mono text-xs">$200</button>
+                                    <button type="button" onclick="setAmount(500)" class="price-pill py-2 rounded border border-border-dark hover:bg-primary/20 hover:border-primary hover:text-white text-gray-400 transition-all font-mono text-xs">$500</button>
+                                </div>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-500 text-sm">attach_money</span>
+                                    <input type="number" name="custom_amount" id="custom_amount" placeholder="Custom amount" class="w-full bg-surface-lighter border border-border-dark rounded-lg py-2 pl-9 pr-4 text-white text-sm focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none font-mono">
+                                </div>
+                            </div>
+                            
+                            <script>
+                                function setAmount(val) {
+                                    document.getElementById('custom_amount').value = val;
+                                    document.querySelectorAll('.price-pill').forEach(btn => btn.classList.remove('bg-primary/20', 'border-primary', 'text-white'));
+                                    event.target.classList.add('bg-primary/20', 'border-primary', 'text-white');
+                                }
+                            </script>
+                        {% endif %}
+
+                        <form method="POST" action="{% url 'checkout' product.id %}" onsubmit="return confirmPurchase(event)">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="buy_now">
+                            {% if product.is_variable_price %}
+                            <input type="hidden" name="final_amount" id="final_amount">
+                            <button type="submit" onclick="document.getElementById('final_amount').value = document.getElementById('custom_amount').value" 
+                                class="w-full py-3 bg-white hover:bg-gray-200 text-black font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-white/10">
+                            {% else %}
+                            <button type="submit" class="w-full py-3 bg-white hover:bg-gray-200 text-black font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-white/10">
+                            {% endif %}
+                                <span class="material-symbols-outlined filled-icon">shopping_cart</span>
+                                {% if product.is_variable_price %}
+                                BUY GIFT CARD (INSTANT)
+                                {% else %}
+                                BUY NOW
+                                {% endif %}
+                            </button>
+                        </form>
+                        
+                        <script>
+                            function confirmPurchase(e) {
+                                e.preventDefault();
+                                const form = e.target;
+                                
+                                Swal.fire({
+                                    title: 'Confirm Purchase',
+                                    text: "Are you sure you want to buy this item using your wallet balance?",
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ff4d00',
+                                    cancelButtonColor: '#3085d6',
+                                    confirmButtonText: 'Yes, Buy it!',
+                                    background: '#0f1116',
+                                    color: '#fff'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        form.submit();
+                                    }
+                                });
+                                return false; 
+                            }
+                        </script>
+                    </div>
+                    {% endif %}
+
+                <!-- Live Feed -->
+                <div class="border-t border-border-dark pt-6 mt-6">
+                    <h4 class="font-bold text-white text-sm flex items-center gap-2 mb-4">
+                        <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span> Live Activity
+                    </h4>
+                    <div class="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                        {% for bid in product.bids.all|slice:":5" %}
+                        <div
+                            class="flex items-center justify-between text-sm p-2 rounded hover:bg-surface-lighter transition-colors">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-300">{{ bid.bidder.username }}</span>
+                                <span class="text-xs text-gray-400">{{ bid.timestamp|timesince }} ago</span>
+                            </div>
+                            <span class="font-mono font-bold text-primary">${{ bid.amount|floatformat:2|intcomma }}</span>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-500 text-xs text-center py-2">No bids yet. Be the first!</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/countdown.js' %}"></script>
+{% endblock %}

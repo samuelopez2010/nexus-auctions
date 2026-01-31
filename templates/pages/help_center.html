@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-display font-bold text-white mb-4">Help Center</h1>
+        <p class="text-gray-400">Find answers to frequently asked questions</p>
+    </div>
+
+    <div class="space-y-6">
+        <!-- FAQ Item 1 -->
+        <div class="bg-surface-dark border border-border-dark rounded-xl p-6">
+            <h3 class="text-xl font-bold text-white mb-2">How do auctions work?</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">
+                When you place a bid, you are committing to buy the item if you are the highest bidder when the timer ends. 
+                Funds are not deducted until you pay, but failure to pay may result in an account ban.
+                Bids placed in the last minute will extend the timer by 30 seconds (Sniper Protection).
+            </p>
+        </div>
+
+        <!-- FAQ Item 2 -->
+        <div class="bg-surface-dark border border-border-dark rounded-xl p-6">
+            <h3 class="text-xl font-bold text-white mb-2">How do I verify my account?</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">
+                Account verification happens automatically after your first successful purchase of over $500. 
+                You will receive a badge on your profile.
+            </p>
+        </div>
+
+        <!-- FAQ Item 3 -->
+        <div class="bg-surface-dark border border-border-dark rounded-xl p-6">
+            <h3 class="text-xl font-bold text-white mb-2">What are Gift Cards?</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">
+                Gift Cards on Nexus are digital codes delivered instantly to your email and dashboard upon purchase. 
+                They can be used on their respective platforms (Amazon, PSN, etc.).
+                You can choose a preset amount or enter a custom amount for supported cards.
+            </p>
+        </div>
+
+        <!-- FAQ Item 4 -->
+        <div class="bg-surface-dark border border-border-dark rounded-xl p-6">
+            <h3 class="text-xl font-bold text-white mb-2">Refund Policy</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">
+                All sales are final for auctions. Direct purchases can be refunded within 24 hours if the item has not been shipped.
+                Digital Gift Cards are non-refundable once the code has been revealed.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

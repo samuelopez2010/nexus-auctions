@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-secondary text-3xl">card_giftcard</span>
+                <h2 class="text-3xl font-display font-bold text-white uppercase tracking-tight">Digital Gift Cards</h2>
+            </div>
+            <p class="text-gray-400">Instant delivery. Variable denominations.</p>
+        </div>
+        
+        <!-- Filter/Sort (Simple) -->
+        <div class="flex gap-2">
+            <a href="?sort=newest" class="px-4 py-2 rounded-lg bg-surface-dark border border-border-dark text-gray-400 hover:text-white hover:border-secondary transition-all text-sm font-bold">Newest</a>
+            <a href="?sort=featured" class="px-4 py-2 rounded-lg bg-surface-dark border border-border-dark text-gray-400 hover:text-white hover:border-secondary transition-all text-sm font-bold">Featured</a>
+        </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {% for card in cards %}
+        <a href="{% url 'product_detail' card.id %}" class="group block bg-surface-dark border border-border-dark rounded-xl overflow-hidden hover:border-secondary transition-all relative">
+            <div class="aspect-[1.58] bg-surface-lighter relative overflow-hidden">
+                {% if card.images.first %}
+                <img src="{{ card.images.first.image.url }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-black">
+                     <span class="material-symbols-outlined text-4xl text-gray-600">redeem</span>
+                </div>
+                {% endif %}
+                
+                <!-- Badge -->
+                <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-wider">INSTANT</span>
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <h3 class="font-bold text-white text-lg truncate mb-1 group-hover:text-secondary transition-colors">{{ card.title }}</h3>
+                <p class="text-gray-500 text-xs text-sm">Variable Amount</p>
+                
+                <div class="mt-4 flex items-center gap-2 text-xs font-mono text-secondary">
+                    <span class="px-2 py-1 rounded bg-secondary/10 border border-secondary/20">$10</span>
+                    <span class="px-2 py-1 rounded bg-secondary/10 border border-secondary/20">$25</span>
+                    <span class="px-2 py-1 rounded bg-secondary/10 border border-secondary/20">$50+</span>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="col-span-full text-center py-20">
+            <span class="material-symbols-outlined text-6xl text-gray-600 mb-4">sentiment_dissatisfied</span>
+            <p class="text-gray-500">No gift cards available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

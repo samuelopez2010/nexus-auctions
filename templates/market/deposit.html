@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+    <div class="bg-surface-dark border border-border-dark rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+        <!-- Decoration -->
+        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+        <div class="text-center mb-8 relative z-10">
+            <div class="w-16 h-16 rounded-full bg-surface-lighter flex items-center justify-center mx-auto mb-4 border border-border-dark">
+                 <span class="material-symbols-outlined text-4xl text-primary">account_balance_wallet</span>
+            </div>
+            <h2 class="text-3xl font-display font-bold text-white">Deposit Funds</h2>
+            <p class="text-gray-400 text-sm mt-1">Add test credits to your Nexus Wallet.</p>
+        </div>
+        
+        <div class="bg-surface-lighter rounded-xl p-4 mb-6 border border-border-dark flex justify-between items-center relative z-10">
+            <span class="text-gray-400 text-xs font-bold uppercase">Current Balance</span>
+            <span class="text-xl font-mono font-bold text-white">${{ wallet_balance|floatformat:2|intcomma }}</span>
+        </div>
+
+        <form method="POST" action="{% url 'create_checkout_session' %}" class="space-y-6 relative z-10">
+            {% csrf_token %}
+            
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-gray-400 uppercase">Amount to Deposit</label>
+                <div class="relative">
+                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">$</span>
+                    <input type="number" name="amount" min="1" step="0.01" required value="100"
+                        class="w-full bg-black border border-border-dark text-white rounded-xl pl-8 pr-4 py-4 text-2xl font-mono font-bold focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+                </div>
+            </div>
+
+            <!-- Quick Amounts -->
+            <div class="grid grid-cols-3 gap-3">
+                <button type="button" onclick="setAmount(10)" class="py-2 rounded-lg border border-border-dark hover:bg-surface-lighter text-sm font-bold text-gray-400 hover:text-white transition-all">$10</button>
+                <button type="button" onclick="setAmount(50)" class="py-2 rounded-lg border border-border-dark hover:bg-surface-lighter text-sm font-bold text-gray-400 hover:text-white transition-all">$50</button>
+                <button type="button" onclick="setAmount(100)" class="py-2 rounded-lg border border-border-dark hover:bg-surface-lighter text-sm font-bold text-gray-400 hover:text-white transition-all">$100</button>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-[#635BFF] hover:bg-[#5851df] text-white font-bold rounded-xl shadow-lg shadow-indigo-900/30 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">credit_card</span>
+                PAY WITH STRIPE
+            </button>
+        </form>
+        <script>
+            function confirmDeposit() {
+                var amount = document.querySelector('input[name="amount"]').value;
+                Swal.fire({
+                    title: 'Confirm Deposit',
+                    text: `Are you sure you want to deposit $${amount}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ff4d00',
+                    cancelButtonColor: '#333',
+                    confirmButtonText: 'Yes, Deposit',
+                    background: '#0f1116',
+                    color: '#fff'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.querySelector('form').submit();
+                    }
+                })
+            }
+        </script>
+    </div>
+</div>
+
+<script>
+    function setAmount(val) {
+        document.querySelector('input[name="amount"]').value = val;
+    }
+</script>
+{% endblock %}

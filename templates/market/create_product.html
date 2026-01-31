@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-surface-dark border border-border-dark rounded-2xl p-8 relative overflow-hidden">
+        
+        <!-- Decorative bg blur -->
+        <div class="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+        <div class="relative z-10 mb-8 pb-8 border-b border-border-dark">
+            <h2 class="text-3xl font-display font-bold text-white mb-2">Create New Listing</h2>
+            <p class="text-gray-400">Add a new item to the marketplace. Choose between Auction or Direct Sale.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6 relative z-10">
+            {% csrf_token %}
+
+            <!-- Custom File Upload -->
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Product Images</label>
+                <div class="relative group">
+                    <input type="file" name="images" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+                    <div class="border-2 border-dashed border-border-dark group-hover:border-primary rounded-xl p-8 text-center transition-colors bg-surface-lighter/20">
+                        <div class="w-16 h-16 rounded-full bg-surface-lighter group-hover:bg-primary/10 flex items-center justify-center mx-auto mb-4 transition-colors">
+                            <span class="material-symbols-outlined text-3xl text-gray-400 group-hover:text-primary">add_a_photo</span>
+                        </div>
+                        <p class="text-white font-bold">Click to upload images</p>
+                        <p class="text-gray-500 text-xs mt-1">PNG, JPG up to 10MB</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Title -->
+                <div class="md:col-span-2 space-y-2">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Item Title</label>
+                    <input type="text" name="title" required 
+                        class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder-gray-600"
+                        placeholder="e.g. Vintage 1980s Arcade Cabinet">
+                </div>
+
+                <!-- Category -->
+                 <div class="space-y-2">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Category</label>
+                    <select name="category" required 
+                        class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+                        {% for x, y in form.fields.category.choices %}
+                        <option value="{{ x }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                 <!-- Condition -->
+                 <div class="space-y-2">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Condition</label>
+                    <select name="condition" required 
+                        class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+                        {% for x, y in form.fields.condition.choices %}
+                        <option value="{{ x }}">{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                 <!-- Description -->
+                 <div class="md:col-span-2 space-y-2">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Description</label>
+                    <textarea name="description" rows="5" required 
+                        class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder-gray-600"
+                        placeholder="Describe your item in detail..."></textarea>
+                </div>
+
+                <!-- Location -->
+                 <div class="space-y-2">
+                    <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Location (City, Country)</label>
+                     <input type="text" name="location" required 
+                        class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder-gray-600"
+                        placeholder="e.g. New York, USA">
+                </div>
+                 <div class="hidden md:block"></div>
+
+                <div class="md:col-span-2 border-t border-border-dark pt-6 mt-2">
+                    <h3 class="text-white font-bold mb-4">Pricing & Auction Settings</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <!-- Sales Type -->
+                         <div class="space-y-2">
+                            <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Sales Type</label>
+                            <select name="sales_type" id="salesType" required 
+                                class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+                                {% for x, y in form.fields.sales_type.choices %}
+                                <option value="{{ x }}">{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                         <!-- Initial Price -->
+                         <div class="space-y-2">
+                            <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Starting Price / Price</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                <input type="number" name="initial_price" step="0.01" required 
+                                    class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg pl-8 pr-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Buy Now Price (Optional) -->
+                        <div class="space-y-2">
+                            <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Buy Now Price (Optional)</label>
+                             <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                <input type="number" name="buy_now_price" step="0.01" 
+                                    class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg pl-8 pr-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+                        
+                        <!-- End Time -->
+                        <div class="space-y-2">
+                            <label class="block text-sm font-bold text-gray-400 uppercase tracking-wide">Auction End Time</label>
+                            <input type="datetime-local" name="auction_end_time" 
+                                class="w-full bg-surface-lighter border border-border-dark text-white rounded-lg px-4 py-3 focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all [color-scheme:dark]">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 pt-8 border-t border-border-dark">
+                <button type="submit" class="flex-1 bg-primary hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-orange-900/40 hover:-translate-y-0.5 transform">
+                    PUBLISH LISTING
+                </button>
+                <a href="{% url 'home' %}" class="px-8 py-4 rounded-xl border border-border-dark text-gray-400 hover:text-white hover:bg-surface-lighter font-bold transition-colors">
+                    CANCEL
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

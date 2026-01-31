@@ -1,0 +1,248 @@
+{% load static %}
+{% load custom_filters %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>{% block title %}Nexus Index & Live Dashboard{% endblock %}</title>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#ff4d00", // Neon Orange
+              secondary: "#00f0ff", // Electric Blue
+              "background-dark": "#050608", // Deepest Charcoal
+              "surface-dark": "#0f1116", // Panel BG
+              "surface-lighter": "#1a1d26", // Hover/Card BG
+              "border-dark": "#2a2f3d",
+              success: "#00ff9d",
+              danger: "#ff0055"
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Space Grotesk", "sans-serif"],
+            },
+            animation: {
+                'marquee': 'marquee 25s linear infinite',
+                'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+            keyframes: {
+                marquee: {
+                    '0%': { transform: 'translateX(0%)' },
+                    '100%': { transform: 'translateX(-100%)' },
+                }
+            }
+          },
+        },
+      };
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .filled-icon { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .neon-text-orange { text-shadow: 0 0 10px rgba(255, 77, 0, 0.5), 0 0 20px rgba(255, 77, 0, 0.3); }
+        .neon-text-blue { text-shadow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3); }
+        .glass-panel { background: rgba(15, 17, 22, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        body { background-color: #050608; color: #e5e7eb; }
+        
+        /* Transition utility for simple fades */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f1116; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2a2f3d; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #ff4d00; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen font-sans antialiased selection:bg-primary selection:text-white overflow-x-hidden flex flex-col">
+
+<!-- Navbar -->
+<nav class="sticky top-0 z-50 border-b border-border-dark bg-surface-dark/90 backdrop-blur-md">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-18 items-center py-3">
+            <div class="flex items-center gap-6">
+                <!-- Mobile Menu Button -->
+                <button class="p-2 rounded-lg hover:bg-surface-lighter transition-colors text-gray-400 hover:text-white lg:hidden">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                
+                <!-- Logo -->
+                <a href="{% url 'home' %}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <span class="material-symbols-outlined text-secondary text-4xl" style="font-variation-settings: 'wght' 700">all_inclusive</span>
+                    <span class="font-display font-bold text-2xl tracking-tight text-white">NEXUS</span>
+                </a>
+
+                <!-- Nav Links -->
+                <div class="hidden md:flex ml-8 items-center gap-6 text-sm font-bold tracking-wide">
+                    <a href="{% url 'catalog' %}" class="text-gray-300 hover:text-white transition-colors relative group">
+                        BROWSE
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+                    </a>
+                    <a href="{% url 'catalog' %}?sales_type=AUCTION" class="text-gray-300 hover:text-white transition-colors relative group">
+                        AUCTIONS
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+                    </a>
+                    <a href="{% url 'gift_cards' %}" class="text-gray-300 hover:text-white transition-colors relative group">
+                        GIFT CARDS
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+                    </a>
+                </div>
+                
+                <!-- Search Bar -->
+                <form action="{% url 'catalog' %}" method="GET" class="hidden xl:flex relative group ml-8">
+                    <input name="q" value="{{ request.GET.q|default:'' }}" class="bg-surface-lighter border border-border-dark text-gray-300 rounded-full py-2 pl-10 pr-4 w-64 focus:w-80 focus:ring-1 focus:ring-secondary focus:border-secondary transition-all outline-none text-sm placeholder-gray-500" placeholder="Search lots, collections..." type="text"/>
+                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-500 text-[20px]">search</span>
+                </form>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="hidden lg:flex items-center gap-2 px-3 py-1 rounded bg-surface-lighter border border-border-dark/50">
+                    <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+                    <span class="text-xs font-mono text-success">SYSTEM ONLINE</span>
+                </div>
+                
+                {% if user.is_authenticated %}
+                <!-- NEW Sell Item Button (Restored Position) -->
+                <a href="{% url 'create_product' %}" class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-primary to-orange-600 hover:from-orange-500 hover:to-orange-400 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all shadow-lg shadow-orange-900/20 hover:shadow-orange-900/40 hover:-translate-y-0.5">
+                    <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    SELL ITEM
+                </a>
+
+                <!-- Notifications -->
+                <a href="{% url 'notifications' %}" class="relative p-2 rounded-full hover:bg-surface-lighter text-gray-400 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">notifications</span>
+                    {% if unread_notifications_count > 0 %}
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full animate-ping"></span>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+                    {% endif %}
+                </a>
+                
+                <!-- User Balance & Profile -->
+                <div class="flex items-center gap-3 pl-4 border-l border-border-dark">
+                    <a href="{% url 'deposit_funds' %}" class="text-right hidden sm:block hover:bg-surface-lighter px-2 py-1 rounded transition-colors group">
+                        <p class="text-xs text-gray-400 group-hover:text-primary transition-colors">Balance <span class="material-symbols-outlined text-[10px] ml-1">add_circle</span></p>
+                        <p class="font-display font-bold text-white text-sm">${{ wallet_balance|default:"0.00"|floatformat:2|intcomma }}</p>
+                    </a>
+                    
+                    <div class="relative group">
+                        <button class="w-10 h-10 rounded-full border border-border-dark overflow-hidden ring-2 ring-transparent hover:ring-primary transition-all">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="User Avatar" class="w-full h-full object-cover"/>
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" alt="User Avatar" class="w-full h-full object-cover"/>
+                            {% endif %}
+                        </button>
+                        <!-- Dropdown -->
+                        <div class="absolute right-0 mt-2 w-48 bg-surface-dark border border-border-dark rounded-xl shadow-xl py-2 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all z-50">
+                            <div class="px-4 py-2 border-b border-white/5">
+                                <p class="text-sm text-white font-bold">{{ user.username }}</p>
+                                <p class="text-xs text-gray-400 truncate">{{ user.email }}</p>
+                            </div>
+                            <a href="{% url 'dashboard' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-surface-lighter hover:text-white">Dashboard</a>
+                            <a href="{% url 'user_profile' user.id %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-surface-lighter hover:text-white">My Profile</a>
+                            <a href="{% url 'deposit_funds' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-surface-lighter hover:text-white">Wallet & Deposit</a>
+                            <a href="{% url 'create_product' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-surface-lighter hover:text-white">Sell Item</a>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-danger hover:bg-surface-lighter">Sign Out</a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'login' %}" class="text-sm font-bold text-gray-300 hover:text-white transition-colors">Log In</a>
+                    <a href="{% url 'signup' %}" class="bg-primary hover:bg-orange-600 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-orange-900/20">Sign Up</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Ticker -->
+<div class="bg-primary/5 border-b border-primary/20 overflow-hidden py-1.5 relative z-40">
+    <div class="flex items-center gap-8 whitespace-nowrap animate-marquee text-xs font-mono text-primary font-medium tracking-wide">
+        <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse-fast"></span> LIVE: MARKET ACTIVE</span>
+        <span>•</span>
+        <span>AUCTION #8821 SOLD FOR $1,200</span>
+        <span>•</span>
+        <span>NEW DROP: CYBERPUNK COLLECTION IN 2H</span>
+        <span>•</span>
+        <span>BTC/USD $93,450</span>
+        <span>•</span>
+        <span>USER @CRYPTOKING JUST BID $850 ON PS5 PRO</span>
+    </div>
+</div>
+
+<main class="flex-grow">
+{% block content %}{% endblock %}
+</main>
+
+<!-- Enhanced Footer -->
+<footer class="border-t border-border-dark bg-surface-dark mt-auto py-12">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div class="col-span-1 md:col-span-2">
+                <a href="{% url 'home' %}" class="flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-secondary text-3xl">all_inclusive</span>
+                    <span class="font-display font-bold text-xl tracking-tight text-white">NEXUS</span>
+                </a>
+                <p class="text-gray-500 text-sm max-w-md">Nexus is the premier marketplace for rare digital and physical collectibles. Secure, fast, and transparent auctions powered by next-gen tech.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4 uppercase text-xs tracking-wider">Marketplace</h4>
+                <ul class="space-y-2 text-sm text-gray-500">
+                    <li><a href="{% url 'catalog' %}" class="hover:text-primary transition-colors">Browse All</a></li>
+                    <li><a href="{% url 'catalog' %}?sales_type=AUCTION" class="hover:text-primary transition-colors">Live Auctions</a></li>
+                    <li><a href="{% url 'catalog' %}?sales_type=DIRECT" class="hover:text-primary transition-colors">Buy Now</a></li>
+                    <li><a href="{% url 'create_product' %}" class="hover:text-primary transition-colors">Sell an Item</a></li>
+                </ul>
+            </div>
+                <div>
+                    <h4 class="text-white font-bold uppercase tracking-widest text-xs mb-6">Support</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="{% url 'help_center' %}" class="text-gray-400 hover:text-primary transition-colors">Help Center</a></li>
+                        <li><a href="{% url 'terms' %}" class="text-gray-400 hover:text-primary transition-colors">Terms of Service</a></li>
+                        <li><a href="{% url 'privacy' %}" class="text-gray-400 hover:text-primary transition-colors">Privacy Policy</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-gray-400 hover:text-primary transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold uppercase tracking-widest text-xs mb-6">Connect</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-surface-lighter flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-surface-lighter flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
+                            <i class="bi bi-discord"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-surface-lighter flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-border-dark mt-16 pt-8 text-center">
+                <p class="text-gray-500 text-sm">&copy; 2026 Nexus Marketplace. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+<!-- Scripts -->
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

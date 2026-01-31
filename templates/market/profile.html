@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-[1200px] mx-auto px-4 py-8">
+    
+    <!-- Profile Header -->
+    <div class="relative mb-24">
+        <!-- Banner -->
+        <div class="h-48 bg-gradient-to-r from-surface-dark to-surface-lighter border border-border-dark rounded-2xl overflow-hidden relative">
+            <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+        </div>
+        
+        <!-- PFP & Info -->
+        <div class="absolute -bottom-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+            <div class="w-32 h-32 rounded-full border-4 border-[#050608] bg-surface-dark overflow-hidden shadow-2xl relative group">
+                {% if profile_user.profile_picture %}
+                <img src="{{ profile_user.profile_picture.url }}" class="w-full h-full object-cover">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-4xl font-bold text-white">
+                    {{ profile_user.username.0|upper }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="text-center mt-4">
+                <h1 class="text-3xl font-display font-bold text-white flex items-center gap-2 justify-center">
+                    {{ profile_user.username }}
+                    {% if profile_user.is_verified %}
+                    <span class="material-symbols-outlined text-nexus-blue text-2xl" title="Verified User">verified</span>
+                    {% endif %}
+                </h1>
+                
+                <div class="flex items-center gap-3 justify-center mt-2">
+                    <span class="px-3 py-1 rounded-full bg-surface-lighter border border-border-dark text-xs font-bold uppercase tracking-wider text-gray-400">
+                        {{ profile_user.get_role_display }}
+                    </span>
+                    <div class="flex items-center gap-1 text-yellow-500 bg-yellow-400/10 px-3 py-1 rounded-full border border-yellow-400/20">
+                        <span class="material-symbols-outlined text-[16px] filled-icon">star</span>
+                        <span class="text-xs font-bold">{{ avg_rating|default:"New" }}</span>
+                    </div>
+                </div>
+
+                {% if profile_user.bio %}
+                <p class="text-gray-400 text-sm mt-4 max-w-lg mx-auto leading-relaxed">
+                    {{ profile_user.bio }}
+                </p>
+                {% endif %}
+
+                {% if request.user == profile_user %}
+                <div class="mt-6">
+                    <a href="{% url 'edit_profile' %}" class="px-6 py-2 rounded-lg bg-surface-lighter hover:bg-surface-lighter/80 text-white text-xs font-bold border border-border-dark transition-all flex items-center gap-2 mx-auto w-fit">
+                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                        EDIT PROFILE
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Tabs -->
+    <div class="mt-20">
+        <div class="flex justify-center border-b border-border-dark mb-8">
+            <button onclick="switchTab('listings')" id="tab-listings" class="px-8 py-4 text-sm font-bold text-primary border-b-2 border-primary transition-all">
+                ACTIVE LISTINGS
+            </button>
+            <button onclick="switchTab('reviews')" id="tab-reviews" class="px-8 py-4 text-sm font-bold text-gray-500 hover:text-white transition-all">
+                REVIEWS ({{ profile_user.received_reviews.count }})
+            </button>
+        </div>
+
+        <!-- LISTINGS TAB -->
+        <div id="view-listings" class="fade-in">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for product in profile_user.products.all %}
+                {% if product.is_active %}
+                <a href="{% url 'product_detail' product.id %}" class="group block bg-surface-dark border border-border-dark rounded-xl overflow-hidden hover:border-primary/50 transition-all hover:translate-y-[-4px]">
+                    <div class="aspect-square bg-black relative">
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-gray-700">
+                             <span class="material-symbols-outlined text-4xl">image</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs font-bold text-white">
+                            {% if product.sales_type == 'AUCTION' %}
+                            BID
+                            {% else %}
+                            BUY
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-white font-bold truncate group-hover:text-primary transition-colors">{{ product.title }}</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            {% if product.sales_type == 'AUCTION' %}
+                                <span class="text-gray-500 text-xs uppercase">Current Bid</span>
+                                <span class="text-white font-mono font-bold">${{ product.current_highest_bid|default:product.initial_price|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="text-gray-500 text-xs uppercase">Price</span>
+                                <span class="text-white font-mono font-bold">${{ product.buy_now_price|floatformat:2 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+                {% empty %}
+                <div class="col-span-full py-12 text-center">
+                    <span class="material-symbols-outlined text-4xl text-gray-700 mb-2">inventory_2</span>
+                    <p class="text-gray-500">No active listings.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- REVIEWS TAB -->
+        <div id="view-reviews" class="hidden fade-in">
+             <div class="max-w-3xl mx-auto space-y-4">
+                {% for review in profile_user.received_reviews.all %}
+                <div class="bg-surface-dark p-6 rounded-xl border border-border-dark">
+                    <div class="flex items-center justify-between mb-4">
+                         <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-surface-lighter flex items-center justify-center text-gray-400 font-bold border border-border-dark">
+                                {{ review.author.username.0|upper }}
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-sm">{{ review.author.username }}</h4>
+                                <p class="text-gray-500 text-[10px] uppercase">{{ review.created_at|date:"M d, Y" }}</p>
+                            </div>
+                         </div>
+                         <div class="flex text-yellow-500 text-xs">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= review.rating %}
+                                <span class="material-symbols-outlined text-[16px] filled-icon">star</span>
+                                {% else %}
+                                <span class="material-symbols-outlined text-[16px]">star</span>
+                                {% endif %}
+                            {% endfor %}
+                         </div>
+                    </div>
+                    <p class="text-gray-300 text-sm italic mb-4">"{{ review.comment }}"</p>
+                    <div class="flex items-center gap-2 pt-4 border-t border-border-dark/50">
+                        <span class="material-symbols-outlined text-gray-600 text-xs">shopping_bag</span>
+                        <a href="{% url 'product_detail' review.transaction.product.id %}" class="text-xs text-primary hover:underline hover:text-white transition-colors">
+                            Product: {{ review.transaction.product.title }}
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-12">
+                     <span class="material-symbols-outlined text-4xl text-gray-700 mb-2">rate_review</span>
+                    <p class="text-gray-500">No reviews yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        const listingsView = document.getElementById('view-listings');
+        const reviewsView = document.getElementById('view-reviews');
+        const listingsBtn = document.getElementById('tab-listings');
+        const reviewsBtn = document.getElementById('tab-reviews');
+
+        if(tab === 'listings') {
+            listingsView.classList.remove('hidden');
+            reviewsView.classList.add('hidden');
+            
+            listingsBtn.classList.add('text-primary', 'border-primary');
+            listingsBtn.classList.remove('text-gray-500', 'border-transparent');
+            
+            reviewsBtn.classList.remove('text-primary', 'border-primary');
+            reviewsBtn.classList.add('text-gray-500', 'border-transparent');
+        } else {
+            listingsView.classList.add('hidden');
+            reviewsView.classList.remove('hidden');
+            
+            reviewsBtn.classList.add('text-primary', 'border-primary');
+            reviewsBtn.classList.remove('text-gray-500', 'border-transparent');
+            
+            listingsBtn.classList.remove('text-primary', 'border-primary');
+            listingsBtn.classList.add('text-gray-500', 'border-transparent');
+        }
+    }
+</script>
+{% endblock %}

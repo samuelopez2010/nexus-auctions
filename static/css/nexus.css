@@ -1,0 +1,154 @@
+:root {
+  --nexus-bg: #0f172a;
+  /* Slate 900 */
+  --nexus-card-bg: #1e293b;
+  /* Slate 800 */
+  --nexus-text: #f8fafc;
+  /* Slate 50 */
+  --nexus-text-muted: #94a3b8;
+  /* Slate 400 */
+  --nexus-orange: #f97316;
+  /* Orange 500 */
+  --nexus-orange-hover: #ea580c;
+  /* Orange 600 */
+  --nexus-blue: #3b82f6;
+  /* Blue 500 */
+  --nexus-green: #22c55e;
+  /* Green 500 */
+  --nexus-red: #ef4444;
+  /* Red 500 */
+  --nexus-border: #334155;
+  /* Slate 700 */
+}
+
+body {
+  background-color: var(--nexus-bg);
+  color: var(--nexus-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Navbar */
+.navbar {
+  background-color: var(--nexus-bg);
+  border-bottom: 1px solid var(--nexus-border);
+  padding: 1rem 0;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.search-input {
+  background-color: var(--nexus-card-bg);
+  border: 1px solid var(--nexus-border);
+  color: var(--nexus-text);
+  border-radius: 9999px;
+  padding-left: 1.5rem;
+}
+
+.search-input:focus {
+  background-color: var(--nexus-card-bg);
+  color: var(--nexus-text);
+  border-color: var(--nexus-blue);
+  box-shadow: none;
+}
+
+/* Buttons */
+.btn-nexus-orange {
+  background-color: var(--nexus-orange);
+  border: none;
+  font-weight: 600;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.2s;
+}
+
+.btn-nexus-orange:hover {
+  background-color: var(--nexus-orange-hover);
+  transform: translateY(-1px);
+}
+
+.btn-nexus-blue {
+  background-color: var(--nexus-blue);
+  border: none;
+  font-weight: 600;
+  color: white;
+  padding: 0.75rem 1.5rem;
+}
+
+.btn-nexus-blue:hover {
+  background-color: #2563eb;
+}
+
+.btn-outline-nexus-orange {
+  color: var(--nexus-orange);
+  border: 1px solid var(--nexus-orange);
+}
+
+.btn-outline-nexus-orange:hover {
+  background-color: var(--nexus-orange);
+  color: white;
+}
+
+/* Cards */
+.card {
+  background-color: var(--nexus-card-bg);
+  border: 1px solid var(--nexus-border);
+  border-radius: 1rem;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Badges */
+.badge-nexus-mint {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: var(--nexus-green);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.badge-nexus-orange {
+  background-color: rgba(249, 115, 22, 0.1);
+  color: var(--nexus-orange);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+/* Forms */
+.form-control {
+  background-color: #0f172a;
+  border: 1px solid var(--nexus-border);
+  color: white;
+}
+
+.form-control:focus {
+  background-color: #0f172a;
+  color: white;
+  border-color: var(--nexus-blue);
+  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+}
+
+/* Utility */
+.text-nexus-muted {
+  color: var(--nexus-text-muted);
+}
+
+.text-nexus-orange {
+  color: var(--nexus-orange);
+}
+
+.border-nexus {
+  border-color: var(--nexus-border) !important;
+}

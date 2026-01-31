@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-12">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-display font-bold text-white mb-4">Contact Us</h1>
+        <p class="text-gray-400">Have a question? We'd love to hear from you.</p>
+    </div>
+
+    <div class="bg-surface-dark border border-border-dark rounded-xl p-8 shadow-2xl">
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-gray-400 text-xs font-bold uppercase mb-2">Your Name</label>
+                <input type="text" name="name" required class="w-full bg-surface-lighter border border-border-dark rounded-lg py-3 px-4 text-white focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none">
+            </div>
+
+            <div>
+                <label class="block text-gray-400 text-xs font-bold uppercase mb-2">Email Address</label>
+                <input type="email" name="email" required class="w-full bg-surface-lighter border border-border-dark rounded-lg py-3 px-4 text-white focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none">
+            </div>
+
+            <div>
+                <label class="block text-gray-400 text-xs font-bold uppercase mb-2">Message</label>
+                <textarea name="message" rows="5" required class="w-full bg-surface-lighter border border-border-dark rounded-lg py-3 px-4 text-white focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-primary hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-900/30 transition-all hover:translate-y-[-2px]">
+                SEND MESSAGE
+            </button>
+        </form>
+    </div>
+
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+        <div class="p-6 bg-surface-dark border border-border-dark rounded-xl">
+            <span class="material-symbols-outlined text-3xl text-primary mb-3">mail</span>
+            <p class="text-white font-bold text-sm">support@nexus.com</p>
+            <p class="text-gray-500 text-xs">Email Support</p>
+        </div>
+        <div class="p-6 bg-surface-dark border border-border-dark rounded-xl">
+            <span class="material-symbols-outlined text-3xl text-secondary mb-3">chat</span>
+            <p class="text-white font-bold text-sm">Live Chat</p>
+            <p class="text-gray-500 text-xs">Available 24/7</p>
+        </div>
+        <div class="p-6 bg-surface-dark border border-border-dark rounded-xl">
+            <span class="material-symbols-outlined text-3xl text-success mb-3">location_on</span>
+            <p class="text-white font-bold text-sm">New York, NY</p>
+            <p class="text-gray-500 text-xs">Our HQ</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

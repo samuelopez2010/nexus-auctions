@@ -1,0 +1,13 @@
+Django>=5.0
+djangorestframework
+django-cors-headers
+redis
+celery
+stripe
+xhtml2pdf
+Pillow
+gunicorn
+whitenoise
+dj-database-url
+psycopg2-binary
+eventlet

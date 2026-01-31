@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+        
+        <!-- Filters Sidebar -->
+        <aside class="w-full lg:w-64 flex-shrink-0">
+            <div class="bg-surface-dark border border-border-dark rounded-xl p-5 sticky top-24">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-white uppercase text-sm tracking-wider">Filters</h3>
+                    <a href="{% url 'catalog' %}" class="text-xs text-primary hover:text-white transition-colors">Reset</a>
+                </div>
+                
+                <form method="GET" class="space-y-6">
+                    {% if request.GET.q %}
+                    <input type="hidden" name="q" value="{{ request.GET.q }}">
+                    {% endif %}
+
+                    <!-- Sales Type -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Sale Type</label>
+                        <select name="sales_type" class="w-full bg-surface-lighter border border-border-dark text-white text-sm rounded-lg focus:ring-primary focus:border-primary">
+                            <option value="">All Types</option>
+                            <option value="AUCTION" {% if selected_sales_type == 'AUCTION' %}selected{% endif %}>Auctions Only</option>
+                            <option value="DIRECT" {% if selected_sales_type == 'DIRECT' %}selected{% endif %}>Buy Now Only</option>
+                        </select>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Price Range</label>
+                        <div class="flex gap-2">
+                            <input type="number" name="min_price" placeholder="Min" value="{{ min_price|default:'' }}"
+                                class="w-1/2 bg-surface-lighter border border-border-dark text-white text-sm rounded-lg focus:ring-primary focus:border-primary p-2">
+                            <input type="number" name="max_price" placeholder="Max" value="{{ max_price|default:'' }}"
+                                class="w-1/2 bg-surface-lighter border border-border-dark text-white text-sm rounded-lg focus:ring-primary focus:border-primary p-2">
+                        </div>
+                    </div>
+
+                    <!-- Condition -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Condition</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="condition" value="NEW" {% if 'NEW' in selected_conditions %}checked{% endif %} class="rounded bg-surface-lighter border-border-dark text-primary focus:ring-primary">
+                                <span class="text-sm text-gray-300">New / Mint</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" name="condition" value="USED" {% if 'USED' in selected_conditions %}checked{% endif %} class="rounded bg-surface-lighter border-border-dark text-primary focus:ring-primary">
+                                <span class="text-sm text-gray-300">Used</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Sort -->
+                     <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Sort By</label>
+                        <select name="sort" class="w-full bg-surface-lighter border border-border-dark text-white text-sm rounded-lg focus:ring-primary focus:border-primary">
+                            <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+                            <option value="urgent" {% if selected_sort == 'urgent' %}selected{% endif %}>Ending Soonest</option>
+                            <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full bg-primary hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-orange-900/20">
+                        APPLY FILTERS
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Product Grid -->
+        <main class="flex-1">
+            <div class="mb-6 flex justify-between items-center">
+                <h1 class="text-2xl font-display font-bold text-white">Catalog Explorer</h1>
+                <span class="text-gray-400 text-sm">{{ products.count }} Items Found</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for product in products %}
+                <div class="group relative bg-surface-dark border border-border-dark rounded-xl overflow-hidden hover:border-nexus-blue/50 transition-all duration-300 hover:shadow-2xl hover:shadow-cyan-900/10 hover:-translate-y-1">
+                    
+                    <!-- Image -->
+                    <div class="aspect-square bg-surface-lighter relative p-4 group-hover:bg-black/40 transition-colors">
+                        {% if product.sales_type != 'DIRECT' %}
+                            {% if product.auction_end_time|is_expired %}
+                             <span class="absolute top-2 left-2 z-10 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">ENDED</span>
+                            {% else %}
+                             <span class="absolute top-2 left-2 z-10 flex items-center gap-1 bg-black/60 backdrop-blur px-2 py-1 rounded text-[10px] text-white border border-white/10">
+                                <span class="w-1.5 h-1.5 rounded-full bg-danger animate-pulse"></span> {{ product.auction_end_time|precise_time_left }}
+                            </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="absolute top-2 left-2 z-10 bg-nexus-blue text-black text-[10px] font-bold px-2 py-1 rounded">BUY NOW</span>
+                        {% endif %}
+
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110">
+                        {% endif %}
+                        
+                         <!-- Action Overlay -->
+                        <div class="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <a href="{% url 'product_detail' product.id %}" class="bg-white text-black font-bold py-2 px-6 rounded-full transform scale-90 group-hover:scale-100 transition-transform">
+                                VIEW ITEM
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                             <p class="text-xs text-secondary font-bold uppercase tracking-wider">{{ product.category.name|default:"General" }}</p>
+                             <div class="flex text-yellow-500 text-[10px]">
+                                <span class="material-symbols-outlined text-[14px]">star</span>
+                                <span>4.9</span>
+                             </div>
+                        </div>
+                       
+                        <h3 class="font-bold text-white text-lg leading-tight mb-2 truncate">{{ product.title }}</h3>
+                        
+                        <div class="flex items-end justify-between border-t border-border-dark pt-3 mt-3">
+                            <div>
+                                <p class="text-[10px] text-gray-500 uppercase font-bold">
+                                    {% if product.sales_type == 'DIRECT' %}Price{% else %}Current Bid{% endif %}
+                                </p>
+                                <p class="text-xl font-mono font-bold text-white">
+                                    ${{ product.current_highest_bid|default:product.initial_price|floatformat:2 }}
+                                </p>
+                            </div>
+                            <span class="material-symbols-outlined text-gray-600 group-hover:text-primary transition-colors">arrow_forward</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full py-12 text-center">
+                    <span class="material-symbols-outlined text-6xl text-gray-700 mb-4">search_off</span>
+                    <h3 class="text-xl font-bold text-white">No items found</h3>
+                    <p class="text-gray-500">Try adjusting your filters.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

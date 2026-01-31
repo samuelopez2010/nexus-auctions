@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-12">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-display font-bold text-white mb-2">Leave a Review</h1>
+        <p class="text-gray-400 text-sm">How was your transaction with <span class="text-white font-bold">{{ transaction.seller.username }}</span>?</p>
+    </div>
+
+    <div class="bg-surface-dark border border-border-dark rounded-xl p-8 shadow-2xl relative overflow-hidden">
+        
+        <!-- Product Info -->
+        <div class="flex items-center gap-4 mb-8 p-4 bg-surface-lighter rounded-lg border border-border-dark">
+            {% if transaction.product.images.first %}
+            <img src="{{ transaction.product.images.first.image.url }}" class="w-16 h-16 object-cover rounded">
+            {% else %}
+            <div class="w-16 h-16 bg-gray-700 rounded flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl text-gray-500">image</span>
+            </div>
+            {% endif %}
+            <div>
+                <h3 class="text-white font-bold text-sm">{{ transaction.product.title }}</h3>
+                <p class="text-primary font-mono text-xs">${{ transaction.amount }}</p>
+                <p class="text-gray-500 text-[10px] uppercase mt-1">Purchased {{ transaction.transaction_date|date:"M d, Y" }}</p>
+            </div>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Star Rating -->
+            <div class="text-center">
+                <label class="block text-gray-400 text-xs font-bold uppercase mb-4">Rate your experience</label>
+                <div class="rating-box inline-flex flex-row-reverse gap-1">
+                    <input type="radio" name="rating" id="star5" value="5" class="hidden" required>
+                    <label for="star5" class="material-symbols-outlined text-4xl text-gray-600 cursor-pointer transition-colors">star</label>
+                    
+                    <input type="radio" name="rating" id="star4" value="4" class="hidden">
+                    <label for="star4" class="material-symbols-outlined text-4xl text-gray-600 cursor-pointer transition-colors">star</label>
+                    
+                    <input type="radio" name="rating" id="star3" value="3" class="hidden">
+                    <label for="star3" class="material-symbols-outlined text-4xl text-gray-600 cursor-pointer transition-colors">star</label>
+                    
+                    <input type="radio" name="rating" id="star2" value="2" class="hidden">
+                    <label for="star2" class="material-symbols-outlined text-4xl text-gray-600 cursor-pointer transition-colors">star</label>
+                    
+                    <input type="radio" name="rating" id="star1" value="1" class="hidden">
+                    <label for="star1" class="material-symbols-outlined text-4xl text-gray-600 cursor-pointer transition-colors">star</label>
+                </div>
+            </div>
+
+            <!-- Comment -->
+            <div>
+                <label class="block text-gray-400 text-xs font-bold uppercase mb-2">Detailed Feedback</label>
+                <textarea name="comment" rows="4" placeholder="Was the item as described? How was shipping?" required class="w-full bg-surface-lighter border border-border-dark rounded-lg py-3 px-4 text-white focus:ring-1 focus:ring-primary focus:border-primary transition-all outline-none resize-none"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-primary hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-900/30 transition-all hover:translate-y-[-2px]">
+                SUBMIT REVIEW
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Star Rating Logic */
+    .rating-box label:hover,
+    .rating-box label:hover ~ label,
+    .rating-box input:checked ~ label {
+        color: #fbbf24; /* yellow-400 */
+        font-variation-settings: 'FILL' 1;
+        text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    }
+</style>
+{% endblock %}

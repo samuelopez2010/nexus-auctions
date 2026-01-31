@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-white">Notifications</h1>
+        <button class="text-sm text-primary hover:text-white transition-colors">Mark all as read</button>
+    </div>
+
+    <div class="space-y-4">
+        {% for notification in notifications %}
+        <div class="bg-surface-dark border border-border-dark rounded-xl p-4 flex items-start gap-4 {% if not notification.read %}border-l-4 border-l-primary bg-surface-lighter{% endif %}">
+            <div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0 text-secondary">
+                <span class="material-symbols-outlined">notifications</span>
+            </div>
+            <div class="flex-grow">
+                <p class="text-white text-sm">{{ notification.message }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ notification.created_at|naturaltime }}</p>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12 text-gray-500">
+            <span class="material-symbols-outlined text-4xl mb-2">notifications_off</span>
+            <p>No notifications yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

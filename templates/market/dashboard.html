@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Dashboard Header & Tabs -->
+    <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-border-dark pb-4 gap-4">
+        <div>
+            <h2 class="text-3xl font-display font-bold text-white mb-2">My Dashboard</h2>
+             <p class="text-gray-400">Manage your sales, purchases, and account activity.</p>
+        </div>
+        
+        <!-- Tab Controls -->
+        <div class="flex bg-surface-dark p-1 rounded-xl border border-border-dark">
+            <button onclick="switchTab('selling')" ids="tab-btn-selling" class="px-6 py-2 rounded-lg text-sm font-bold transition-all bg-primary text-white shadow-lg shadow-orange-900/40">
+                SELLING
+            </button>
+            <button onclick="switchTab('buying')" id="tab-btn-buying" class="px-6 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">
+                BUYING
+            </button>
+            <button onclick="switchTab('reviews')" id="tab-btn-reviews" class="px-6 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">
+                MY REVIEWS
+            </button>
+        </div>
+    </div>
+
+    <!-- SELLING TAB -->
+    <div id="selling-view" class="fade-in">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total Sales -->
+            <div class="group relative bg-surface-dark border border-border-dark rounded-2xl p-6 overflow-hidden hover:border-nexus-blue/50 transition-colors">
+                <div class="absolute -right-6 -top-6 text-nexus-blue/5 rounded-full p-4 transform group-hover:scale-110 transition-transform duration-500">
+                    <span class="material-symbols-outlined text-[120px]">attach_money</span>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-secondary text-xs font-bold uppercase tracking-wider mb-2">Total Sales</p>
+                    <h3 class="text-4xl font-mono font-bold text-white mb-1">${{ total_sales|floatformat:2|intcomma }}</h3>
+                    <div class="flex items-center gap-1 text-success text-xs font-bold">
+                        <span class="material-symbols-outlined text-[16px]">trending_up</span>
+                        <span>Lifetime Earnings</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Listings -->
+            <div class="group relative bg-surface-dark border border-border-dark rounded-2xl p-6 overflow-hidden hover:border-primary/50 transition-colors">
+                 <div class="absolute -right-6 -top-6 text-primary/5 rounded-full p-4 transform group-hover:scale-110 transition-transform duration-500">
+                    <span class="material-symbols-outlined text-[120px]">inventory_2</span>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-primary text-xs font-bold uppercase tracking-wider mb-2">Active Listings</p>
+                    <h3 class="text-4xl font-mono font-bold text-white mb-1">{{ active_count }}</h3>
+                    <a href="{% url 'create_product' %}" class="inline-flex items-center gap-1 text-gray-400 hover:text-primary text-xs font-bold transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                        Create New Listing
+                    </a>
+                </div>
+            </div>
+
+            <!-- Items Sold -->
+            <div class="group relative bg-surface-dark border border-border-dark rounded-2xl p-6 overflow-hidden hover:border-purple-500/50 transition-colors">
+                 <div class="absolute -right-6 -top-6 text-purple-500/5 rounded-full p-4 transform group-hover:scale-110 transition-transform duration-500">
+                    <span class="material-symbols-outlined text-[120px]">check_circle</span>
+                </div>
+                <div class="relative z-10">
+                    <p class="text-purple-400 text-xs font-bold uppercase tracking-wider mb-2">Items Sold</p>
+                    <h3 class="text-4xl font-mono font-bold text-white mb-1">{{ sold_count }}</h3>
+                    <p class="text-gray-500 text-xs text-xs font-bold">Successfully completed orders</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Recent Transactions Table -->
+            <div class="lg:col-span-2 bg-surface-dark border border-border-dark rounded-2xl overflow-hidden">
+                <div class="p-6 border-b border-border-dark flex justify-between items-center">
+                    <h3 class="font-bold text-white text-lg">Recent Sales</h3>
+                    <button class="text-xs text-gray-400 hover:text-white transition-colors">Export CSV</button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-surface-lighter/50 text-gray-500 text-xs uppercase tracking-wider border-b border-border-dark">
+                                <th class="px-6 py-4 font-bold">Item</th>
+                                <th class="px-6 py-4 font-bold">Buyer</th>
+                                <th class="px-6 py-4 font-bold">Date</th>
+                                <th class="px-6 py-4 font-bold text-right">Amount</th>
+                                <th class="px-6 py-4 font-bold text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-dark">
+                            {% for transaction in recent_transactions %}
+                            <tr class="hover:bg-surface-lighter/30 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="text-white font-bold text-sm">{{ transaction.product.title }}</span>
+                                        <span class="text-gray-500 text-xs font-mono">ID: #{{ transaction.id }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-300 text-sm">
+                                    <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-[10px] text-secondary font-bold">
+                                        {{ transaction.buyer.username.0|upper }}
+                                    </div>
+                                    {{ transaction.buyer.username }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-400 text-sm">{{ transaction.transaction_date|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4 text-right font-mono font-bold text-success text-sm">+${{ transaction.amount|floatformat:2|intcomma }}</td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="px-2 py-1 rounded bg-success/10 text-success border border-success/20 text-[10px] font-bold uppercase">{{ transaction.status }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                             <tr>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <span class="material-symbols-outlined text-4xl text-gray-700 mb-2">receipt_long</span>
+                                    <p class="text-gray-500">No sales yet.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Active Inventory List -->
+            <div class="bg-surface-dark border border-border-dark rounded-2xl overflow-hidden h-fit">
+                <div class="p-6 border-b border-border-dark flex justify-between items-center">
+                    <h3 class="font-bold text-white text-lg">Active Inventory</h3>
+                    <a href="#" class="text-xs text-primary hover:text-white transition-colors">View All</a>
+                </div>
+                <div class="divide-y divide-border-dark max-h-[500px] overflow-y-auto custom-scrollbar">
+                    {% for product in active_products|slice:":5" %}
+                    <div class="p-4 hover:bg-surface-lighter/30 transition-colors flex gap-4">
+                        <div class="w-12 h-12 rounded-lg bg-black border border-border-dark overflow-hidden flex-shrink-0">
+                            {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-700">
+                                 <span class="material-symbols-outlined text-[20px]">image</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <h4 class="text-white font-bold text-sm truncate">{{ product.title }}</h4>
+                            {% if product.sales_type == 'AUCTION' %}
+                                <p class="text-xs text-secondary mt-1">Current Bid: <span class="font-mono font-bold">${{ product.current_highest_bid|default:product.initial_price|floatformat:2 }}</span></p>
+                            {% else %}
+                                 <p class="text-xs text-primary mt-1">Price: <span class="font-mono font-bold">${{ product.buy_now_price|floatformat:2 }}</span></p>
+                            {% endif %}
+                        </div>
+                         <a href="{% url 'product_detail' product.id %}" class="w-8 h-8 rounded-full bg-surface-lighter hover:bg-primary hover:text-white flex items-center justify-center text-gray-400 transition-all flex-shrink-0">
+                            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                        </a>
+                    </div>
+                    {% empty %}
+                    <div class="p-8 text-center">
+                         <p class="text-gray-500 text-sm">No active listings.</p>
+                         <a href="{% url 'create_product' %}" class="text-primary text-xs font-bold mt-2 block hover:underline">Create one now</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUYING TAB -->
+    <div id="buying-view" class="hidden fade-in">
+        <!-- Buying Stats -->
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-surface-dark border border-border-dark rounded-2xl p-6 flex items-center justify-between">
+                <div>
+                    <h3 class="text-3xl font-mono font-bold text-white mb-1">${{ total_spent|floatformat:2|intcomma }}</h3>
+                    <p class="text-gray-400 text-xs font-bold uppercase">Total Spent</p>
+                </div>
+                 <div class="w-12 h-12 rounded-full bg-nexus-blue/10 flex items-center justify-center text-nexus-blue">
+                    <span class="material-symbols-outlined text-3xl">shopping_cart</span>
+                </div>
+            </div>
+             <div class="bg-surface-dark border border-border-dark rounded-2xl p-6 flex items-center justify-between">
+                <div>
+                    <h3 class="text-3xl font-mono font-bold text-white mb-1">{{ purchases_count }}</h3>
+                    <p class="text-gray-400 text-xs font-bold uppercase">Items Purchased</p>
+                </div>
+                 <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center text-success">
+                    <span class="material-symbols-outlined text-3xl">shopping_bag</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-surface-dark border border-border-dark rounded-2xl overflow-hidden">
+             <div class="p-6 border-b border-border-dark">
+                <h3 class="font-bold text-white text-lg">Purchase History</h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-surface-lighter/50 text-gray-500 text-xs uppercase tracking-wider border-b border-border-dark">
+                            <th class="px-6 py-4 font-bold">Item</th>
+                            <th class="px-6 py-4 font-bold">Seller</th>
+                            <th class="px-6 py-4 font-bold">Date</th>
+                            <th class="px-6 py-4 font-bold text-right">Amount</th>
+                            <th class="px-6 py-4 font-bold text-center">Status</th>
+                            <th class="px-6 py-4 font-bold text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border-dark">
+                        {% for order in recent_purchases %}
+                        <tr class="hover:bg-surface-lighter/30 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-4">
+                                     <div class="w-10 h-10 rounded bg-black border border-border-dark overflow-hidden flex-shrink-0">
+                                        {% if order.product.images.first %}
+                                        <img src="{{ order.product.images.first.image.url }}" class="w-full h-full object-cover">
+                                        {% else %}
+                                        <div class="w-full h-full flex items-center justify-center text-gray-700">
+                                            <span class="material-symbols-outlined text-[16px]">image</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-white font-bold text-sm">{{ order.product.title }}</span>
+                                        <span class="text-gray-500 text-xs font-mono">Invoice #{{ order.id }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-gray-300 text-sm">
+                                <span class="flex items-center gap-2">
+                                     <span class="material-symbols-outlined text-[16px] text-gray-500">storefront</span>
+                                     {{ order.seller.username }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-400 text-sm">{{ order.transaction_date|date:"M d, Y" }}</td>
+                            <td class="px-6 py-4 text-right font-mono font-bold text-white text-sm">${{ order.amount|floatformat:2|intcomma }}</td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-2 py-1 rounded bg-nexus-blue/10 text-nexus-blue border border-nexus-blue/20 text-[10px] font-bold uppercase">{{ order.status }}</span>
+                            </td>
+                             <td class="px-6 py-4 text-center space-x-2">
+                                <a href="{% url 'leave_review' order.id %}" class="text-xs font-bold text-secondary hover:text-white hover:underline">
+                                    REVIEW
+                                </a>
+                                <span class="text-gray-600">|</span>
+                                <a href="{% url 'download_invoice' order.id %}" class="text-xs font-bold text-primary hover:text-white hover:underline">
+                                    INVOICE
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <span class="material-symbols-outlined text-4xl text-gray-700 mb-2">shopping_bag</span>
+                                <p class="text-gray-500">You haven't purchased anything yet.</p>
+                                <a href="{% url 'home' %}" class="text-primary font-bold text-sm mt-2 block">Browse Marketplace</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="reviews-view" class="hidden fade-in">
+        <div class="bg-surface-dark border border-border-dark rounded-2xl overflow-hidden p-6">
+            <h3 class="font-bold text-white text-lg mb-6">Reviews I've Written</h3>
+            
+            <div class="space-y-4">
+                {% for review in written_reviews %}
+                <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex gap-4">
+                     <!-- Product Image -->
+                    <div class="w-16 h-16 rounded bg-black border border-border-dark overflow-hidden flex-shrink-0">
+                        {% if review.transaction.product.images.first %}
+                        <img src="{{ review.transaction.product.images.first.image.url }}" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-1">
+                             <h4 class="text-white font-bold text-sm">{{ review.transaction.product.title }}</h4>
+                             <span class="text-xs text-gray-500">{{ review.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="flex text-yellow-500 text-xs mb-2">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= review.rating %}
+                                <span class="material-symbols-outlined text-[16px] filled-icon">star</span>
+                                {% else %}
+                                <span class="material-symbols-outlined text-[16px]">star</span>
+                                {% endif %}
+                            {% endfor %}
+                         </div>
+                        <p class="text-gray-400 text-sm italic">"{{ review.comment }}"</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-12">
+                     <span class="material-symbols-outlined text-4xl text-gray-700 mb-2">rate_review</span>
+                    <p class="text-gray-500 mb-2">You haven't written any reviews yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        // Simple logic for now
+        const sellView = document.getElementById('selling-view');
+        const buyView = document.getElementById('buying-view');
+        const sellBtn = document.querySelector('button[onclick="switchTab(\'selling\')"]');
+        const buyBtn = document.getElementById('tab-btn-buying');
+
+        if(tab === 'selling') {
+            sellView.classList.remove('hidden');
+            buyView.classList.add('hidden');
+            if(document.getElementById('reviews-view')) document.getElementById('reviews-view').classList.add('hidden');
+            
+            // Activate Sell Btn
+            sellBtn.classList.remove('text-gray-400', 'hover:text-white');
+            sellBtn.classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+            
+            // Deactivate Buy Btn
+            buyBtn.classList.add('text-gray-400', 'hover:text-white');
+            buyBtn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+            
+            // Deactivate Reviews Btn
+            document.getElementById('tab-btn-reviews').classList.add('text-gray-400', 'hover:text-white');
+            document.getElementById('tab-btn-reviews').classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+
+        } else if (tab === 'buying') {
+            sellView.classList.add('hidden');
+            buyView.classList.remove('hidden');
+            if(document.getElementById('reviews-view')) document.getElementById('reviews-view').classList.add('hidden');
+
+             // Activate Buy Btn
+            buyBtn.classList.remove('text-gray-400', 'hover:text-white');
+            buyBtn.classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+            
+            // Deactivate Sell Btn
+             sellBtn.classList.add('text-gray-400', 'hover:text-white');
+            sellBtn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+
+             // Deactivate Reviews Btn
+            document.getElementById('tab-btn-reviews').classList.add('text-gray-400', 'hover:text-white');
+            document.getElementById('tab-btn-reviews').classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+        } else if (tab === 'reviews') {
+            sellView.classList.add('hidden');
+            buyView.classList.add('hidden');
+            document.getElementById('reviews-view').classList.remove('hidden');
+
+            // Activate Reviews Btn
+            document.getElementById('tab-btn-reviews').classList.remove('text-gray-400', 'hover:text-white');
+            document.getElementById('tab-btn-reviews').classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+
+             // Deactivate Buy/Sell
+            buyBtn.classList.add('text-gray-400', 'hover:text-white');
+            buyBtn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+            sellBtn.classList.add('text-gray-400', 'hover:text-white');
+            sellBtn.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-orange-900/40');
+        }
+    }
+</script>
+{% endblock %}
