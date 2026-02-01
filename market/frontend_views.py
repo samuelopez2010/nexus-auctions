@@ -84,11 +84,13 @@ def catalog(request):
     max_price = request.GET.get('max_price')
     conditions = request.GET.getlist('condition')
     sales_type = request.GET.get('sales_type') # AUCTION or DIRECT
+    category_id = request.GET.get('category')
     
     if min_price: products = products.filter(initial_price__gte=min_price)
     if max_price: products = products.filter(initial_price__lte=max_price)
     if conditions: products = products.filter(condition__in=conditions)
     if sales_type: products = products.filter(sales_type=sales_type)
+    if category_id: products = products.filter(category_id=category_id)
     
     # Sort
     sort_by = request.GET.get('sort', 'newest')
@@ -97,8 +99,13 @@ def catalog(request):
     elif sort_by == 'urgent': products = products.filter(sales_type__in=['AUCTION', 'HYBRID']).order_by('auction_end_time')
     else: products = products.order_by('-created_at')
     
+    # Get all categories for filter
+    categories = Category.objects.all()
+
     context = {
         'products': products,
+        'categories': categories,
+        'selected_category': int(category_id) if category_id else None,
         'selected_conditions': conditions, # Pass list for template check
         'selected_sales_type': sales_type,
         'selected_sort': sort_by,

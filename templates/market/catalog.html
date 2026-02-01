@@ -19,6 +19,17 @@
                     <input type="hidden" name="q" value="{{ request.GET.q }}">
                     {% endif %}
 
+                    <!-- Categories -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Category</label>
+                        <select name="category" class="w-full bg-surface-lighter border border-border-dark text-white text-sm rounded-lg focus:ring-primary focus:border-primary">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <!-- Sales Type -->
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Sale Type</label>
