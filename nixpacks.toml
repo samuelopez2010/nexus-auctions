@@ -7,9 +7,9 @@ nixPkgs = [
     "pango", 
     "gdk-pixbuf", 
     "libffi",
-    "python311Packages.pycairo",
-    "python311Packages.cffi",
-    "python311Packages.pillow"
+    "gobject-introspection",
+    "libjpeg",
+    "zlib"
 ]
 
 [phases.install]
