@@ -13,5 +13,10 @@ echo "-----------------------------------"
 echo "✅ MIGRATIONS COMPLETE"
 echo "-----------------------------------"
 
+echo "-----------------------------------"
+echo "👤 CHECKING SUPERUSER"
+echo "-----------------------------------"
+python manage.py create_admin_auto
+
 echo "Starting Gunicorn..."
 exec gunicorn nexus_core.wsgi --log-file -
