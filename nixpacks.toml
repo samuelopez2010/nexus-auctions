@@ -1,5 +1,16 @@
 [phases.setup]
-nixPkgs = ["python311", "gcc", "pkg-config", "cairo", "pango", "gdk-pixbuf", "libffi"]
+nixPkgs = [
+    "python311", 
+    "gcc", 
+    "pkg-config", 
+    "cairo", 
+    "pango", 
+    "gdk-pixbuf", 
+    "libffi",
+    "python311Packages.pycairo",
+    "python311Packages.cffi",
+    "python311Packages.pillow"
+]
 
 [phases.install]
 cmds = ["pip install -r requirements.txt"]
