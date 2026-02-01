@@ -129,39 +129,27 @@
             <div class="bg-surface-dark border border-border-dark rounded-xl p-1 shadow-lg">
                 <nav class="space-y-1">
                     <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all group 
-                        {% if request.GET.q == 'Electronics' %} bg-surface-lighter text-white border-l-2 border-primary {% else %} text-gray-400 hover:text-white hover:bg-surface-lighter {% endif %}"
-                        href="?q=Electronics">
-                        <span class="material-symbols-outlined {% if request.GET.q == 'Electronics' %} text-primary {% else %} group-hover:text-secondary {% endif %} text-[20px]">joystick</span> 
-                        Electronics & Gaming
+                        {% if not request.GET.category %} bg-surface-lighter text-white border-l-2 border-primary {% else %} text-gray-400 hover:text-white hover:bg-surface-lighter {% endif %}"
+                        href="{% url 'catalog' %}">
+                        <span class="material-symbols-outlined {% if not request.GET.category %} text-primary {% else %} group-hover:text-secondary {% endif %} text-[20px]">apps</span> 
+                        All Categories
                     </a>
 
+                    {% for cat in categories %}
                     <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all group 
-                        {% if request.GET.q == 'Watches' %} bg-surface-lighter text-white border-l-2 border-primary {% else %} text-gray-400 hover:text-white hover:bg-surface-lighter {% endif %}"
-                        href="?q=Watches">
-                        <span class="material-symbols-outlined {% if request.GET.q == 'Watches' %} text-primary {% else %} group-hover:text-secondary {% endif %} text-[20px]">watch</span>
-                        Watches & Jewelry
+                        {% if request.GET.category == cat.id|stringformat:'i' %} bg-surface-lighter text-white border-l-2 border-primary {% else %} text-gray-400 hover:text-white hover:bg-surface-lighter {% endif %}"
+                        href="{% url 'catalog' %}?category={{ cat.id }}">
+                        <span class="material-symbols-outlined {% if request.GET.category == cat.id|stringformat:'i' %} text-primary {% else %} group-hover:text-secondary {% endif %} text-[20px]">
+                            {% if cat.name == 'Electronics' %}joystick
+                            {% elif cat.name == 'Watches' %}watch
+                            {% elif cat.name == 'Art' %}palette
+                            {% elif cat.name == 'Motors' %}directions_car
+                            {% elif cat.name == 'Fashion' %}checkroom
+                            {% else %}label{% endif %}
+                        </span> 
+                        {{ cat.name }}
                     </a>
-
-                    <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all group 
-                        {% if request.GET.q == 'Art' %} bg-surface-lighter text-white border-l-2 border-primary {% else %} text-gray-400 hover:text-white hover:bg-surface-lighter {% endif %}"
-                        href="?q=Art">
-                        <span class="material-symbols-outlined {% if request.GET.q == 'Art' %} text-primary {% else %} group-hover:text-secondary {% endif %} text-[20px]">palette</span>
-                        Art & Collectibles
-                    </a>
-
-                    <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all group 
-                        {% if request.GET.q == 'Motors' %} bg-surface-lighter text-white border-l-2 border-primary {% else %} text-gray-400 hover:text-white hover:bg-surface-lighter {% endif %}"
-                        href="?q=Motors">
-                        <span class="material-symbols-outlined {% if request.GET.q == 'Motors' %} text-primary {% else %} group-hover:text-secondary {% endif %} text-[20px]">directions_car</span>
-                        Motors
-                    </a>
-
-                    <a class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all group 
-                        {% if request.GET.q == 'Fashion' %} bg-surface-lighter text-white border-l-2 border-primary {% else %} text-gray-400 hover:text-white hover:bg-surface-lighter {% endif %}"
-                        href="?q=Fashion">
-                        <span class="material-symbols-outlined {% if request.GET.q == 'Fashion' %} text-primary {% else %} group-hover:text-secondary {% endif %} text-[20px]">checkroom</span>
-                        Streetwear
-                    </a>
+                    {% endfor %}
                 </nav>
             </div>
         </aside>

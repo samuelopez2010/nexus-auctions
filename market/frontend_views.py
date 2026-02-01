@@ -46,13 +46,17 @@ def home(request):
         user_stats['winning'] = Product.objects.filter(bids__bidder=request.user).distinct().count()
         user_stats['outbid'] = 0 # Placeholder
 
+    # Get Categories for Sidebar
+    categories = Category.objects.all()
+
     context = {
         'hero_product': hero_product,
         'hot_auctions': hot_auctions,
         'new_arrivals': new_arrivals,
         'featured_gift_cards': gift_cards,
         'user_stats': user_stats,
-        'query': query
+        'query': query,
+        'categories': categories
     }
     return render(request, 'index.html', context)
 
