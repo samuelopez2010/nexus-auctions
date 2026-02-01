@@ -53,7 +53,6 @@ class Product(models.Model):
     
     auction_end_time = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
     is_active = models.BooleanField(default=True) # Keeping for backward compatibility temporarily
     is_variable_price = models.BooleanField(default=False, help_text="If true, price defaults to 0 and user selects amount.")
     

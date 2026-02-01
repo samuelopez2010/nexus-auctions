@@ -27,4 +27,4 @@ COPY . .
 RUN python manage.py collectstatic --noinput
 
 # Run the application
-CMD python manage.py migrate && gunicorn nexus_core.wsgi --log-file -
+CMD python manage.py showmigrations && python manage.py migrate && gunicorn nexus_core.wsgi --log-file -
