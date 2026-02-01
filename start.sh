@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+echo "-----------------------------------"
+echo "🚀 STARTING DEPLOYMENT SCRIPT"
+echo "-----------------------------------"
+
+echo "Checking database connection and applying migrations..."
+python manage.py showmigrations
+python manage.py migrate
+
+echo "-----------------------------------"
+echo "✅ MIGRATIONS COMPLETE"
+echo "-----------------------------------"
+
+echo "Starting Gunicorn..."
+exec gunicorn nexus_core.wsgi --log-file -

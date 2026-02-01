@@ -27,4 +27,9 @@ COPY . .
 RUN python manage.py collectstatic --noinput
 
 # Run the application
-CMD python manage.py showmigrations && python manage.py migrate && gunicorn nexus_core.wsgi --log-file -
+# Copy and set permissions for start script
+COPY start.sh .
+RUN chmod +x start.sh
+
+# Run the application
+CMD ["/bin/bash", "start.sh"]
