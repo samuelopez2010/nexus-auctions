@@ -61,9 +61,9 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
 ]
 
-    from django.views.static import serve
-    from django.urls import re_path
+from django.views.static import serve
+from django.urls import re_path
 
-    urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
-    ]
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
