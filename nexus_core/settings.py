@@ -197,7 +197,7 @@ else:
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Stripe Configuration
-STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'your-public-key-here')
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'your-secret-key-here')
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'your-public-key-here').strip()
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'your-secret-key-here').strip()
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')

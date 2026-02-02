@@ -57,8 +57,7 @@
                         </div>
                         <div class="text-right">
                             <span class="block text-xs text-gray-500 uppercase font-bold mb-1">Unit Price</span>
-                            <span class="text-xl font-mono font-bold text-white">${{
-                                product.initial_price|floatformat:2|intcomma }}</span>
+                            <span class="text-xl font-mono font-bold text-white">${{ product.initial_price|floatformat:2|intcomma }}</span>
                         </div>
                     </div>
                 </div>
@@ -77,8 +76,7 @@
                         <span class="absolute top-3 right-3 text-primary material-symbols-outlined">bolt</span>
                         <h4 class="text-primary font-bold text-sm mb-1">NEXUS WALLET</h4>
                         <p class="text-gray-400 text-xs mb-4">Instant settlement using your balance.</p>
-                        <p class="text-white font-mono font-bold text-lg mb-4">Balance: ${{
-                            wallet_balance|floatformat:2|intcomma }}</p>
+                        <p class="text-white font-mono font-bold text-lg mb-4">Balance: ${{ wallet_balance|floatformat:2|intcomma }}</p>
 
                         <!-- Logic to determine price -->
                         {% with price=product.buy_now_price|default:product.initial_price %}
@@ -160,8 +158,7 @@
 
                 <div class="flex justify-between items-end mb-2">
                     <span class="text-white font-bold">EST. TOTAL</span>
-                    <span class="text-3xl font-mono font-bold text-white">${{
-                        product.initial_price|floatformat:2|intcomma }}</span>
+                    <span class="text-3xl font-mono font-bold text-white">${{ product.initial_price|floatformat:2|intcomma }}</span>
                 </div>
                 <p class="text-right text-xs text-gray-500 mb-6">USD EQUIVALENT</p>
 
