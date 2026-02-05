@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ user.username }}'s Profile</h1>
+
+<div style="display:flex; flex-wrap:wrap; gap:40px; margin-top:20px;">
+    <div style="flex:1;">
+        <h3>My Watchlist</h3>
+        <div class="movie-grid">
+            {% for m in watchlist %}
+            <a href="{% url 'movie_detail' m.id %}">
+                <img src="https://image.tmdb.org/t/p/w185{{ m.poster_path }}" style="width:100px; border-radius:4px;">
+            </a>
+            {% empty %}
+            <p style="color:gray;">No movies in watchlist yet.</p>
+            {% endfor %}
+        </div>
+
+        <h3 style="margin-top:40px;">Ratings</h3>
+        <ul>
+            {% for r in ratings %}
+            <li>{{ r.movie.title }} - <span style="color:gold;">{{ r.score }}★</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div style="flex:1; max-width:400px;">
+        <h3>Favorite Genres</h3>
+        <canvas id="genreChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ctx = document.getElementById('genreChart');
+    const data = JSON.parse('{{ genre_stats|safe }}');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.data,
+                backgroundColor: ['#e50914', '#564d4d', '#831010', '#db0000', '#f5f5f1'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#ccc' } }
+            }
+        }
+    });
+</script>
+{% endblock %}

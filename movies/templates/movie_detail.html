@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero-section" style="background-image: url('https://image.tmdb.org/t/p/original{{ movie.backdrop_path }}');">
+    <div class="hero-overlay">
+        <div style="max-width: 600px;">
+            <h1 style="font-size: 3em; margin-bottom: 10px;">{{ movie.title }}</h1>
+            <p style="margin-bottom: 20px;">{{ movie.release_date|date:"Y" }} | {{ movie.vote_average }} Rating</p>
+            <p style="font-size: 1.1em; line-height: 1.5; margin-bottom: 30px;">{{ movie.overview }}</p>
+            
+            <div style="display:flex; gap:10px;">
+                <button class="btn-primary" style="width:auto; padding: 10px 30px;">Play Trailer</button>
+                <button class="btn-primary" style="width:auto; background: #333; padding: 10px 30px;" 
+                        onclick="toggleWatchlist()" id="watchlistBtn">
+                    {% if in_watchlist %}- My List{% else %}+ My List{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display:flex; flex-wrap:wrap; margin-top: 40px; gap: 40px;">
+    <div style="flex: 1; min-width: 300px;">
+        <h2>AI Analysis</h2>
+        <div class="radar-container">
+            <canvas id="radarChart"></canvas>
+        </div>
+    </div>
+    
+    <div style="flex: 1; min-width: 300px;">
+        <h2>Rate this Movie</h2>
+        <div style="font-size: 2em;">
+            {% for i in "12345"|make_list %}
+            <span style="cursor:pointer; color:{% if user_rating >= forloop.counter %}gold{% else %}gray{% endif %};" 
+                  onclick="rateMovie({{ forloop.counter }})">&#9733;</span>
+            {% endfor %}
+        </div>
+        <p id="rate-msg" style="color:var(--primary);"></p>
+
+        <h2>Details</h2>
+        <p><strong>Genres:</strong> {% for g in movie.genres.all %}{{ g.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    </div>
+</div>
+
+<section class="carousel-section" style="margin-top: 40px;">
+    <div class="carousel-title">Similar Movies</div>
+    <div class="carousel-scroll">
+        {% for m in similar_movies %}
+        <a href="{% url 'movie_detail' m.id %}" class="movie-card">
+            <img src="https://image.tmdb.org/t/p/w300{{ m.poster_path }}" alt="{{ m.title }}">
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Radar Chart
+    const ctx = document.getElementById('radarChart');
+    if (ctx) {
+        const data = JSON.parse('{{ radar_data|safe }}');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Attributes',
+                    data: Object.values(data),
+                    fill: true,
+                    backgroundColor: 'rgba(229, 9, 20, 0.2)',
+                    borderColor: '#e50914',
+                    pointBackgroundColor: '#e50914',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { color: '#333' },
+                        grid: { color: '#333' },
+                        pointLabels: { color: '#ccc' },
+                        ticks: { display: false, backdropColor: 'transparent' },
+                        min: 0,
+                        max: 10
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // AJAX Interactions
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    function rateMovie(score) {
+        fetch("{% url 'rate_movie' movie.id %}", {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrftoken},
+            body: 'score=' + score
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                document.getElementById('rate-msg').innerText = 'Rating Saved!';
+                setTimeout(() => location.reload(), 1000);
+            }
+        });
+    }
+
+    function toggleWatchlist() {
+        fetch("{% url 'toggle_watchlist' movie.id %}", {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrftoken}
+        })
+        .then(response => response.json())
+        .then(data => {
+            const btn = document.getElementById('watchlistBtn');
+            if(data.status === 'added') btn.innerText = '- My List';
+            else btn.innerText = '+ My List';
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if recommendations %}
+<section class="carousel-section">
+    <div class="carousel-title">Top AI Picks for You <span style="font-size:0.8em; color:var(--primary);">98% Match</span></div>
+    <div class="carousel-scroll">
+        {% for movie in recommendations %}
+        <a href="{% url 'movie_detail' movie.id %}" class="movie-card">
+            <img src="https://image.tmdb.org/t/p/w300{{ movie.poster_path }}" alt="{{ movie.title }}">
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if because_movie %}
+<section class="carousel-section">
+    <div class="carousel-title">Because you watched <i>{{ because_movie.title }}</i></div>
+    <div class="carousel-scroll">
+        {% for movie in similar_movies %}
+        <a href="{% url 'movie_detail' movie.id %}" class="movie-card">
+            <img src="https://image.tmdb.org/t/p/w300{{ movie.poster_path }}" alt="{{ movie.title }}">
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="carousel-section">
+    <div class="carousel-title">Trending Now</div>
+    <div class="carousel-scroll">
+        {% for movie in trending %}
+        <a href="{% url 'movie_detail' movie.id %}" class="movie-card">
+            <img src="https://image.tmdb.org/t/p/w300{{ movie.poster_path }}" alt="{{ movie.title }}">
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock %}
