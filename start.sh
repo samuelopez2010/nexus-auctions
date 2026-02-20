@@ -18,5 +18,10 @@ echo "👤 CHECKING SUPERUSER"
 echo "-----------------------------------"
 python manage.py create_admin_auto
 
+echo "-----------------------------------"
+echo "🎁 POPULATING GIFT CARDS"
+echo "-----------------------------------"
+python manage.py populate_gift_cards
+
 echo "Starting Gunicorn..."
 exec gunicorn nexus_core.wsgi --log-file -

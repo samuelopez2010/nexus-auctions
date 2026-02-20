@@ -3,7 +3,7 @@ djangorestframework
 django-cors-headers
 redis
 celery
-stripe
+requests
 xhtml2pdf
 Pillow
 gunicorn

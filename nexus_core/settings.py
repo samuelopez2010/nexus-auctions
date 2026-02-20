@@ -196,8 +196,8 @@ else:
     EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Stripe Configuration
-STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'your-public-key-here').strip()
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'your-secret-key-here').strip()
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+# NowPayments Configuration
+NOWPAYMENTS_API_KEY = os.environ.get('NOWPAYMENTS_API_KEY', 'your-api-key-here').strip()
+NOWPAYMENTS_IPN_SECRET = os.environ.get('NOWPAYMENTS_IPN_SECRET', 'your-ipn-secret-here').strip()
+NOWPAYMENTS_API_URL = os.environ.get('NOWPAYMENTS_API_URL', 'https://api.nowpayments.io/v1')
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')

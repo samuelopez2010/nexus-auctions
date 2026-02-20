@@ -12,7 +12,7 @@ from market.frontend_views import (
     help_center, terms, privacy, contact, leave_review, edit_profile
 )
 from market.auth_views import login_view, logout_view, signup_view
-from market.payment_views import create_checkout_session, stripe_webhook, payment_success
+from market.payment_views import create_checkout_session, nowpayments_webhook, payment_success
 from transactions.views import download_invoice
 
 router = DefaultRouter()
@@ -44,7 +44,7 @@ urlpatterns = [
     
     # Payments
     path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),
-    path('webhook/stripe/', stripe_webhook, name='stripe_webhook'),
+    path('webhook/nowpayments/', nowpayments_webhook, name='nowpayments_webhook'),
     path('wallet/success/', payment_success, name='payment_success'),
     
     path('login/', login_view, name='login'),
