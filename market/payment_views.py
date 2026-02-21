@@ -6,13 +6,34 @@ from django.contrib.auth.decorators import login_required
 from users.models import Wallet, User
 import requests
 import json
-import hmac
-import hashlib
+import base64
+
+def get_paypal_access_token():
+    client_id = settings.PAYPAL_CLIENT_ID
+    secret = settings.PAYPAL_SECRET
+    mode = settings.PAYPAL_MODE
+    
+    base_url = "https://api-m.paypal.com" if mode == 'live' else "https://api-m.sandbox.paypal.com"
+    auth_string = f"{client_id}:{secret}"
+    auth_bytes = auth_string.encode('ascii')
+    auth_base64 = base64.b64encode(auth_bytes).decode('ascii')
+    
+    headers = {
+        'Authorization': f'Basic {auth_base64}',
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    
+    data = {'grant_type': 'client_credentials'}
+    
+    response = requests.post(f"{base_url}/v1/oauth2/token", headers=headers, data=data)
+    if response.status_code == 200:
+        return response.json().get('access_token')
+    return None
 
 @login_required
 def create_checkout_session(request):
     """
-    Creates a NowPayments Invoice for adding funds to the wallet.
+    Creates a PayPal Order for adding funds to the wallet.
     """
     if request.method == 'POST':
         try:
@@ -22,107 +43,140 @@ def create_checkout_session(request):
                 
             amount_usd = float(amount_str)
             
-            # NowPayments API Request
+            # PayPal API Request
+            access_token = get_paypal_access_token()
+            if not access_token:
+                return JsonResponse({'error': 'Failed to authenticate with payment gateway'}, status=500)
+                
+            mode = settings.PAYPAL_MODE
+            base_url = "https://api-m.paypal.com" if mode == 'live' else "https://api-m.sandbox.paypal.com"
+            
             headers = {
-                'x-api-key': settings.NOWPAYMENTS_API_KEY,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {access_token}'
             }
             
-            data = {
-                'price_amount': amount_usd,
-                'price_currency': 'usd',
-                'order_id': f"DEP-{request.user.id}-{int(__import__('time').time())}",
-                'order_description': 'Add funds to your Nexus Marketplace Wallet',
-                'success_url': settings.BASE_URL + '/wallet/success/',
-                'cancel_url': settings.BASE_URL + '/wallet/deposit/',
-                # Provide user ID so we know whose wallet to credit in the IPN
-                'ipn_callback_url': settings.BASE_URL + '/webhook/nowpayments/'
+            # Create Order payload
+            order_data = {
+                "intent": "CAPTURE",
+                "purchase_units": [
+                    {
+                        "reference_id": f"DEP_{request.user.id}_{int(__import__('time').time())}",
+                        "description": "Deposit to Nexus Auctions Wallet",
+                        "custom_id": str(request.user.id),
+                        "amount": {
+                            "currency_code": "USD",
+                            "value": f"{amount_usd:.2f}"
+                        }
+                    }
+                ],
+                "application_context": {
+                    "return_url": settings.BASE_URL + '/paypal/capture/',
+                    "cancel_url": settings.BASE_URL + '/wallet/deposit/',
+                    "user_action": "PAY_NOW"
+                }
             }
             
-            # Append user ID to tracking mechanism (NowPayments allows sending extra info sometimes, or we encode in order_id)
-            # We encode user ID in the order_id: "DEP-{user_id}-{timestamp}"
+            response = requests.post(f"{base_url}/v2/checkout/orders", headers=headers, json=order_data)
             
-            response = requests.post(f"{settings.NOWPAYMENTS_API_URL}/invoice", headers=headers, json=data)
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                invoice_url = response_data.get('invoice_url')
-                if invoice_url:
-                    return redirect(invoice_url, code=303)
-                else:
-                    return JsonResponse({'error': 'Failed to generate invoice URL'}, status=500)
+            if response.status_code in [200, 201]:
+                order = response.json()
+                # Find the approval URL to redirect the user
+                for link in order.get('links', []):
+                    if link.get('rel') == 'approve':
+                        # Store order ID in session to verify later
+                        request.session['paypal_order_id'] = order.get('id')
+                        return redirect(link.get('href'), code=303)
+                        
+                return JsonResponse({'error': 'Approval URL not found in PayPal response'}, status=500)
             else:
-                print(f"NowPayments Error: {response.text}")
+                print(f"PayPal Order Error: {response.text}")
                 return JsonResponse({'error': 'Payment Gateway Error'}, status=502)
                 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
     
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-@csrf_exempt
-def stripe_webhook(request): 
-    # NOTE: Function renamed in urls.py to nowpayments_webhook, keeping name here temporary or updating. Let's rename it to nowpayments_webhook properly. 
-    pass # Wait, I can't rename in replace if urls doesn't match yet. I will name it nowpayments_webhook and fix urls.py.
-
-@csrf_exempt
-def nowpayments_webhook(request):
+@login_required
+def paypal_capture(request):
     """
-    Listens for NowPayments IPN (Instant Payment Notifications).
+    Captures the PayPal order after the user approves it on PayPal's site.
     """
+    order_id = request.GET.get('token')
+    session_order_id = request.session.get('paypal_order_id')
+    
+    if not order_id or order_id != session_order_id:
+        from django.contrib import messages
+        messages.error(request, "Invalid or expired payment session.")
+        return redirect('deposit_funds')
+        
     try:
-        # 1. Verify Signature
-        ipn_secret = settings.NOWPAYMENTS_IPN_SECRET
-        received_signature = request.META.get('HTTP_X_NOWPAYMENTS_SIG')
+        access_token = get_paypal_access_token()
+        mode = settings.PAYPAL_MODE
+        base_url = "https://api-m.paypal.com" if mode == 'live' else "https://api-m.sandbox.paypal.com"
         
-        if not received_signature:
-            return HttpResponse(status=400)
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {access_token}'
+        }
+        
+        # Capture the order
+        response = requests.post(f"{base_url}/v2/checkout/orders/{order_id}/capture", headers=headers)
+        
+        if response.status_code in [200, 201]:
+            capture_data = response.json()
+            status = capture_data.get('status')
             
-        request_data = dict(sorted(json.loads(request.body).items()))
-        
-        # NowPayments requires sorting keys and converting to JSON string without spaces
-        sorted_json_str = json.dumps(request_data, separators=(',', ':'))
-        
-        calculated_signature = hmac.new(
-            ipn_secret.encode('utf-8'),
-            sorted_json_str.encode('utf-8'),
-            hashlib.sha512
-        ).hexdigest()
-        
-        if received_signature != calculated_signature and ipn_secret != "your-ipn-secret-here": # Skip if secret is mock for dev
-            print("Invalid signature")
-            return HttpResponse(status=400)
-            
-        # 2. Process IPN
-        payment_status = request_data.get('payment_status')
-        order_id = request_data.get('order_id', '')
-        price_amount = request_data.get('price_amount') # Original requested USD amount
-        
-        if payment_status == 'finished' and order_id.startswith('DEP-'):
-            # Extract user_id from order_id (DEP-{user_id}-{timestamp})
-            parts = order_id.split('-')
-            if len(parts) >= 2:
-                user_id_str = parts[1]
-                
-                try:
-                    user = User.objects.get(id=int(user_id_str))
-                    deposit_amount = float(price_amount)
+            if status == 'COMPLETED':
+                # Get the custom_id which holds the user.id, and the amount
+                purchase_units = capture_data.get('purchase_units', [])
+                if purchase_units:
+                    unit = purchase_units[0]
+                    user_id_str = unit.get('custom_id')
                     
-                    from django.db import transaction
-                    with transaction.atomic():
-                        wallet, _ = Wallet.objects.get_or_create(user=user)
-                        wallet.balance += __import__('decimal').Decimal(deposit_amount)
-                        wallet.save()
+                    # Capture amount is inside payments.captures
+                    captures = unit.get('payments', {}).get('captures', [])
+                    if captures:
+                        amount_value = captures[0].get('amount', {}).get('value')
                         
-                    print(f"WEBHOOK: Credited ${deposit_amount} to {user.username}")
-                except User.DoesNotExist:
-                    print(f"WEBHOOK ERROR: User {user_id_str} not found")
-
-        return HttpResponse(status=200)
-
+                        try:
+                            user = User.objects.get(id=int(user_id_str))
+                            deposit_amount = float(amount_value)
+                            
+                            # Update Wallet ensuring it belongs to the logged-in user
+                            if user == request.user:
+                                from django.db import transaction
+                                with transaction.atomic():
+                                    wallet, _ = Wallet.objects.get_or_create(user=user)
+                                    wallet.balance += __import__('decimal').Decimal(deposit_amount)
+                                    wallet.save()
+                                    
+                                print(f"PAYPAL CAPTURE: Credited ${deposit_amount} to {user.username}")
+                                
+                                # Clear session
+                                if 'paypal_order_id' in request.session:
+                                    del request.session['paypal_order_id']
+                                
+                                return redirect('payment_success')
+                            else:
+                                print(f"PAYPAL SECURITY: User mismatch. Captured {user_id_str} but logged in as {request.user.id}")
+                        except User.DoesNotExist:
+                            print(f"PAYPAL ERROR: User {user_id_str} not found in capture")
+        
+        # If we reach here, capture failed or wasn't COMPLETED
+        print(f"PAYPAL CAPTURE FAILED: {response.text}")
+        from django.contrib import messages
+        messages.error(request, "Payment could not be captured. Please try again.")
+        return redirect('deposit_funds')
+        
     except Exception as e:
-        print(f"Webhook processing error: {e}")
-        return HttpResponse(status=500)
+        print(f"Capture processing error: {e}")
+        from django.contrib import messages
+        messages.error(request, "An error occurred while processing your payment.")
+        return redirect('deposit_funds')
 
 @login_required
 def payment_success(request):

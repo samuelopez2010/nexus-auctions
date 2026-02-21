@@ -196,8 +196,8 @@ else:
     EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# NowPayments Configuration
-NOWPAYMENTS_API_KEY = os.environ.get('NOWPAYMENTS_API_KEY', 'your-api-key-here').strip()
-NOWPAYMENTS_IPN_SECRET = os.environ.get('NOWPAYMENTS_IPN_SECRET', 'your-ipn-secret-here').strip()
-NOWPAYMENTS_API_URL = os.environ.get('NOWPAYMENTS_API_URL', 'https://api.nowpayments.io/v1')
+# PayPal Configuration
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'your-client-id').strip()
+PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET', 'your-secret').strip()
+PAYPAL_MODE = os.environ.get('PAYPAL_MODE', 'sandbox').strip() # 'sandbox' or 'live'
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
