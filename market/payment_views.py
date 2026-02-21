@@ -143,39 +143,48 @@ def paypal_capture(request):
                         amount_value = captures[0].get('amount', {}).get('value')
                         
                         try:
-                            user = User.objects.get(id=int(user_id_str))
+                            # Use the logged-in user from the verified session
+                            user = request.user
                             deposit_amount = float(amount_value)
                             
-                            # Update Wallet ensuring it belongs to the logged-in user
-                            if user == request.user:
-                                from django.db import transaction
-                                with transaction.atomic():
-                                    wallet, _ = Wallet.objects.get_or_create(user=user)
-                                    wallet.balance += __import__('decimal').Decimal(deposit_amount)
-                                    wallet.save()
-                                    
-                                print(f"PAYPAL CAPTURE: Credited ${deposit_amount} to {user.username}")
-                                
-                                # Clear session
-                                if 'paypal_order_id' in request.session:
-                                    del request.session['paypal_order_id']
-                                
-                                return redirect('payment_success')
-                            else:
+                            # Optional extra security check if PayPal returned custom_id
+                            if user_id_str and str(user.id) != str(user_id_str):
                                 print(f"PAYPAL SECURITY: User mismatch. Captured {user_id_str} but logged in as {request.user.id}")
-                        except User.DoesNotExist:
-                            print(f"PAYPAL ERROR: User {user_id_str} not found in capture")
-        
+                                from django.contrib import messages
+                                messages.error(request, "Payment security verification failed.")
+                                return redirect('deposit_funds')
+                                
+                            # Update Wallet
+                            from django.db import transaction
+                            with transaction.atomic():
+                                wallet, _ = Wallet.objects.get_or_create(user=user)
+                                wallet.balance += __import__('decimal').Decimal(str(deposit_amount))
+                                wallet.save()
+                                
+                            print(f"PAYPAL CAPTURE: Credited ${deposit_amount} to {user.username}")
+                            
+                            # Clear session
+                            if 'paypal_order_id' in request.session:
+                                del request.session['paypal_order_id']
+                            
+                            return redirect('payment_success')
+                            
+                        except Exception as e:
+                            print(f"PAYPAL ERROR during wallet credit: {e}")
+                            from django.contrib import messages
+                            messages.error(request, "Error crediting your wallet. Please contact support.")
+                            return redirect('deposit_funds')
+                            
         # If we reach here, capture failed or wasn't COMPLETED
         print(f"PAYPAL CAPTURE FAILED: {response.text}")
         from django.contrib import messages
-        messages.error(request, "Payment could not be captured. Please try again.")
+        messages.error(request, "Payment could not be captured or was already processed.")
         return redirect('deposit_funds')
         
     except Exception as e:
         print(f"Capture processing error: {e}")
         from django.contrib import messages
-        messages.error(request, "An error occurred while processing your payment.")
+        messages.error(request, f"An error occurred: {str(e)}")
         return redirect('deposit_funds')
 
 @login_required
