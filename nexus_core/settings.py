@@ -35,7 +35,10 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(','
 if any(host.endswith('.railway.app') for host in ALLOWED_HOSTS) or os.environ.get('RAILWAY_ENVIRONMENT'):
     ALLOWED_HOSTS.append('.railway.app')
 
-CSRF_TRUSTED_ORIGINS = ['https://' + host for host in ALLOWED_HOSTS if host != '.railway.app'] + ['https://*.railway.app']
+CSRF_TRUSTED_ORIGINS = [
+    'https://nexusinc.lat',
+    'https://www.nexusinc.lat',
+] + ['https://' + host for host in ALLOWED_HOSTS if host != '.railway.app' and host not in ['nexusinc.lat', 'www.nexusinc.lat']] + ['https://*.railway.app']
 
 
 # Application definition
