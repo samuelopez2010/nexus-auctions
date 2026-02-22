@@ -16,4 +16,8 @@ class Command(BaseCommand):
             User.objects.create_superuser(username=username, email=email, password=password)
             print(f"Superuser '{username}' created successfully!")
         else:
-            print(f"Superuser '{username}' already exists. Skipping.")
+            print(f"Superuser '{username}' already exists. Forcing password reset to ensure access.")
+            admin_user = User.objects.get(username=username)
+            admin_user.set_password(password)
+            admin_user.save()
+            print("Password reset successful!")
